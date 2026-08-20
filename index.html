@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
+
+<title>Timer</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    background: #0b1020;
+    color: white;
+
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    touch-action: manipulation;
+}
+
+/* =========================
+   SPIELFLÄCHE
+========================= */
+
+#gameArea {
+    position: fixed;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /*
+      Wichtig für Handy:
+      Die Spielfläche darf Touch-Eingaben
+      direkt annehmen.
+    */
+    touch-action: manipulation;
+
+    cursor: pointer;
+}
+
+#timer {
+    font-size: clamp(60px, 18vw, 125px);
+    font-weight: 800;
+
+    letter-spacing: 2px;
+    text-align: center;
+
+    pointer-events: none;
+
+    transition: transform .15s ease;
+}
+
+#info {
+    position: fixed;
+
+    top: 24px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 90%;
+
+    text-align: center;
+
+    font-size: 16px;
+
+    opacity: .72;
+
+    pointer-events: none;
+}
+
+/* =========================
+   MODUS BUTTON
+========================= */
+
+#modeButton {
+    position: fixed;
+
+    top: 18px;
+    right: 18px;
+
+    z-index: 50;
+
+    border: 0;
+    border-radius: 14px;
+
+    padding: 12px 16px;
+
+    background: #26334d;
+    color: white;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    touch-action: manipulation;
+}
+
+#modeMenu {
+    position: fixed;
+
+    top: 68px;
+    right: 18px;
+
+    width: 245px;
+
+    padding: 9px;
+
+    border-radius: 18px;
+
+    background: #182238;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.55);
+
+    display: none;
+
+    z-index: 60;
+}
+
+#modeMenu.open {
+    display: block;
+}
+
+.modeButton {
+    width: 100%;
+
+    margin: 4px 0;
+
+    padding: 14px;
+
+    border: 0;
+    border-radius: 11px;
+
+    background: #2b3955;
+    color: white;
+
+    text-align: left;
+
+    font-size: 15px;
+
+    touch-action: manipulation;
+}
+
+/* =========================
+   RESET
+========================= */
+
+#resetButton {
+    position: fixed;
+
+    bottom: 25px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    z-index: 50;
+
+    border: 0;
+    border-radius: 14px;
+
+    padding: 13px 24px;
+
+    background: #ef4444;
+    color: white;
+
+    font-size: 17px;
+    font-weight: bold;
+
+    touch-action: manipulation;
+}
+
+/* =========================
+   KLEINER PUNKT
+========================= */
+
+#tinyDot {
+    position: fixed;
+
+    left: 7px;
+    bottom: 7px;
+
+    width: 4px;
+    height: 4px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    opacity: .35;
+
+    pointer-events: none;
+}
+
+/* =========================
+   PANEL
+========================= */
+
+#panel {
+    position: fixed;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    width: min(91%, 440px);
+
+    max-height: 86vh;
+
+    overflow-y: auto;
+
+    padding: 25px;
+
+    border-radius: 22px;
+
+    background: #182238;
+
+    box-shadow:
+        0 25px 80px rgba(0,0,0,.65);
+
+    display: none;
+
+    z-index: 200;
+}
+
+#panel.open {
+    display: block;
+}
+
+#panel h2 {
+    margin-top: 0;
+}
+
+input {
+    width: 100%;
+
+    padding: 14px;
+
+    margin: 5px 0 12px;
+
+    border: 0;
+
+    border-radius: 10px;
+
+    font-size: 17px;
+
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.panelButton {
+    width: 100%;
+
+    padding: 14px;
+
+    margin-top: 8px;
+
+    border: 0;
+
+    border-radius: 11px;
+
+    background: #2563eb;
+
+    color: white;
+
+    font-size: 16px;
+
+    touch-action: manipulation;
+}
+
+.panelButton.secondary {
+    background: #475569;
+}
+
+.panelButton.danger {
+    background: #dc2626;
+}
+
+/* =========================
+   TABELLE
+========================= */
+
+table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    margin-top: 15px;
+}
+
+th, td {
+    padding: 10px 5px;
+
+    border-bottom:
+        1px solid #3b4964;
+
+    text-align: center;
+}
+
+/* =========================
+   PERFEKT
+========================= */
+
+#timer.perfect {
+    animation:
+        perfectAnimation .7s ease;
+}
+
+@keyframes perfectAnimation {
+
+    0% {
+        transform: scale(1);
+    }
+
+    35% {
+        transform: scale(1.35);
+    }
+
+    65% {
+        transform: scale(.9);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* =========================
+   KONFETTI
+========================= */
+
+#confettiCanvas {
+    position: fixed;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    pointer-events: none;
+
+    z-index: 999;
+}
+
+/* =========================
+   HANDY
+========================= */
+
+@media (max-width: 600px) {
+
+    #modeButton {
+        top: 12px;
+        right: 12px;
+
+        padding: 11px 13px;
+    }
+
+    #modeMenu {
+        top: 60px;
+        right: 12px;
+
+        width: 220px;
+    }
+
+    #info {
+        top: 72px;
+
+        font-size: 14px;
+    }
+
+    #resetButton {
+        bottom: 16px;
+    }
+
+    #panel {
+        padding: 21px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     SPIELFLÄCHE
+========================= -->
+
+<div id="gameArea">
+
+    <div id="timer">
+        00.00
+    </div>
+
+</div>
+
+<div id="info">
+    Tippe oder klicke zum Starten
+</div>
+
+
+<!-- =========================
+     MODUS
+========================= -->
+
+<button id="modeButton">
+    Normalmodus ▾
+</button>
+
+<div id="modeMenu">
+
+    <button class="modeButton"
+            data-mode="normal">
+        ⏱️ Normalmodus
+    </button>
+
+    <button class="modeButton"
+            data-mode="blind">
+        🕶️ Blindmodus
+    </button>
+
+    <button class="modeButton"
+            data-mode="challenge">
+        🎯 Challenge
+    </button>
+
+    <button class="modeButton"
+            data-mode="challengeBlind">
+        🎯🕶️ Challenge Blind
+    </button>
+
+    <button class="modeButton"
+            data-mode="friends">
+        👥 Freunde
+    </button>
+
+</div>
+
+
+<!-- =========================
+     RESET
+========================= -->
+
+<button id="resetButton">
+    Zurücksetzen
+</button>
+
+
+<!-- KLEINER PUNKT -->
+
+<div id="tinyDot"></div>
+
+
+<!-- =========================
+     PANEL
+========================= -->
+
+<div id="panel">
+
+    <h2 id="panelTitle"></h2>
+
+    <div id="panelContent"></div>
+
+</div>
+
+
+<!-- KONFETTI -->
+
+<canvas id="confettiCanvas"></canvas>
+
+
+<script>
+
+/* =====================================================
+   VARIABLEN
+===================================================== */
+
+let currentMode = "normal";
+
+let running = false;
+
+let startTime = 0;
+
+let elapsedTime = 0;
+
+let animationFrame = null;
+
+
+/* Challenge */
+
+let challengeTarget = 0;
+
+let challengeResultVisible = false;
+
+let challengeResultTimer = null;
+
+
+/* Challenge Blind */
+
+let challengeBlindTarget = 0;
+
+let challengeBlindResultVisible = false;
+
+let challengeBlindResultTimer = null;
+
+
+/* Freunde */
+
+let friends = [];
+
+let currentFriend = 0;
+
+let friendAttempts = 10;
+
+let currentAttempt = 0;
+
+let friendTarget = 5;
+
+let friendScores = [];
+
+
+/* =====================================================
+   ELEMENTE
+===================================================== */
+
+const gameArea =
+    document.getElementById("gameArea");
+
+const timer =
+    document.getElementById("timer");
+
+const info =
+    document.getElementById("info");
+
+const modeButton =
+    document.getElementById("modeButton");
+
+const modeMenu =
+    document.getElementById("modeMenu");
+
+const resetButton =
+    document.getElementById("resetButton");
+
+const panel =
+    document.getElementById("panel");
+
+const panelTitle =
+    document.getElementById("panelTitle");
+
+const panelContent =
+    document.getElementById("panelContent");
+
+const confettiCanvas =
+    document.getElementById("confettiCanvas");
+
+
+/* =====================================================
+   ZEIT
+===================================================== */
+
+function formatTime(milliseconds) {
+
+    const seconds =
+        Math.floor(milliseconds / 1000);
+
+    const hundredths =
+        Math.floor(
+            (milliseconds % 1000) / 10
+        );
+
+    return (
+        String(seconds).padStart(2, "0")
+        + "."
+        + String(hundredths).padStart(2, "0")
+    );
+}
+
+
+/* =====================================================
+   CHALLENGE ZIEL
+===================================================== */
+
+function createChallengeTarget() {
+
+    return Math.round(
+        (Math.random() * 8.99 + 1) * 100
+    ) / 100;
+}
+
+
+/* =====================================================
+   PERFEKTER TREFFER
+===================================================== */
+
+function isPerfect(milliseconds) {
+
+    const hundredths =
+        Math.round(milliseconds / 10);
+
+    return hundredths % 100 === 0;
+}
+
+
+/* =====================================================
+   KONFETTI
+===================================================== */
+
+function startConfetti() {
+
+    const canvas =
+        confettiCanvas;
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    canvas.width =
+        window.innerWidth;
+
+    canvas.height =
+        window.innerHeight;
+
+
+    const colors = [
+        "#ff3b30",
+        "#ffcc00",
+        "#34c759",
+        "#007aff",
+        "#af52de",
+        "#ff2d55"
+    ];
+
+
+    const pieces = [];
+
+
+    for (let i = 0; i < 170; i++) {
+
+        pieces.push({
+
+            x:
+                window.innerWidth / 2,
+
+            y:
+                window.innerHeight / 2,
+
+            vx:
+                (Math.random() - .5) * 16,
+
+            vy:
+                (Math.random() - .8) * 16,
+
+            size:
+                Math.random() * 8 + 4,
+
+            rotation:
+                Math.random() * 360,
+
+            rotationSpeed:
+                (Math.random() - .5) * 16,
+
+            life:
+                1,
+
+            color:
+                colors[
+                    Math.floor(
+                        Math.random()
+                        * colors.length
+                    )
+                ]
+        });
+    }
+
+
+    function draw() {
+
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        let alive = false;
+
+
+        pieces.forEach(piece => {
+
+            if (piece.life <= 0) {
+                return;
+            }
+
+
+            alive = true;
+
+
+            piece.x += piece.vx;
+
+            piece.y += piece.vy;
+
+            piece.vy += .35;
+
+            piece.rotation +=
+                piece.rotationSpeed;
+
+            piece.life -= .012;
+
+
+            ctx.save();
+
+            ctx.globalAlpha =
+                Math.max(
+                    0,
+                    piece.life
+                );
+
+            ctx.translate(
+                piece.x,
+                piece.y
+            );
+
+            ctx.rotate(
+                piece.rotation
+                * Math.PI / 180
+            );
+
+            ctx.fillStyle =
+                piece.color;
+
+            ctx.fillRect(
+                -piece.size / 2,
+                -piece.size / 2,
+                piece.size,
+                piece.size * 1.8
+            );
+
+            ctx.restore();
+
+        });
+
+
+        if (alive) {
+
+            requestAnimationFrame(draw);
+
+        } else {
+
+            ctx.clearRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+        }
+    }
+
+
+    draw();
+}
+
+
+/* =====================================================
+   PERFEKT
+===================================================== */
+
+function celebratePerfect() {
+
+    timer.classList.remove(
+        "perfect"
+    );
+
+    void timer.offsetWidth;
+
+    timer.classList.add(
+        "perfect"
+    );
+
+    startConfetti();
+}
+
+
+/* =====================================================
+   TIMER AKTUALISIEREN
+===================================================== */
+
+function updateTimer() {
+
+    if (!running) {
+        return;
+    }
+
+
+    elapsedTime =
+        performance.now()
+        - startTime;
+
+
+    if (
+        currentMode === "blind" ||
+        currentMode === "challengeBlind"
+    ) {
+
+        timer.textContent =
+            "???";
+
+    } else {
+
+        timer.textContent =
+            formatTime(elapsedTime);
+    }
+
+
+    animationFrame =
+        requestAnimationFrame(
+            updateTimer
+        );
+}
+
+
+/* =====================================================
+   ⭐ HANDY + PC ⭐
+
+   Das ist der wichtige Teil.
+
+   Handy:
+   touchstart / touchend
+
+   PC:
+   mousedown / mouseup
+
+   Außerdem verhindert das System,
+   dass ein Handy-Tap doppelt gezählt wird.
+===================================================== */
+
+let touchInProgress = false;
+
+
+/* HANDY */
+
+gameArea.addEventListener(
+    "touchstart",
+    function(event) {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+        touchInProgress = true;
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+gameArea.addEventListener(
+    "touchend",
+    function(event) {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+
+        handleGameTap();
+
+
+        /*
+          Kurz warten, damit der Browser
+          den anschließenden Click nicht
+          nochmal als zweiten Tap zählt.
+        */
+
+        setTimeout(
+            function() {
+                touchInProgress = false;
+            },
+            350
+        );
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+/* PC-MAUS */
+
+gameArea.addEventListener(
+    "mouseup",
+    function(event) {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+
+        /*
+          Wenn gerade ein Finger-Tap
+          verarbeitet wurde, ignorieren.
+        */
+
+        if (touchInProgress) {
+            return;
+        }
+
+
+        handleGameTap();
+    }
+);
+
+
+/* Falls ein Browser nur click liefert */
+
+gameArea.addEventListener(
+    "click",
+    function(event) {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+
+        if (touchInProgress) {
+            return;
+        }
+
+        /*
+          Maus-Click wird über mouseup
+          verarbeitet.
+        */
+    }
+);
+
+
+/* =====================================================
+   START / STOP
+===================================================== */
+
+function handleGameTap() {
+
+
+    /* Challenge Ergebnis */
+
+    if (
+        currentMode === "challenge" &&
+        challengeResultVisible
+    ) {
+
+        createNewChallenge();
+
+        return;
+    }
+
+
+    /* Challenge Blind Ergebnis */
+
+    if (
+        currentMode === "challengeBlind" &&
+        challengeBlindResultVisible
+    ) {
+
+        createNewChallengeBlind();
+
+        return;
+    }
+
+
+    /* START */
+
+    if (!running) {
+
+        startTime =
+            performance.now();
+
+        elapsedTime = 0;
+
+        running = true;
+
+
+        if (
+            currentMode === "normal"
+        ) {
+
+            info.textContent =
+                "Tippe zum Stoppen";
+        }
+
+
+        if (
+            currentMode === "blind"
+        ) {
+
+            info.textContent =
+                "🕶️ Stoppe nach Gefühl";
+        }
+
+
+        if (
+            currentMode === "challenge"
+        ) {
+
+            info.textContent =
+                "🎯 Stoppe genau bei "
+                + challengeTarget.toFixed(2)
+                + " Sekunden";
+        }
+
+
+        if (
+            currentMode ===
+            "challengeBlind"
+        ) {
+
+            info.textContent =
+                "🎯🕶️ Stoppe nach Gefühl";
+        }
+
+
+        if (
+            currentMode === "friends"
+        ) {
+
+            info.textContent =
+                friends[currentFriend].name
+                + " – Versuch "
+                + (currentAttempt + 1)
+                + " von "
+                + friendAttempts;
+        }
+
+
+        updateTimer();
+
+        return;
+    }
+
+
+    /* STOP */
+
+    running = false;
+
+    cancelAnimationFrame(
+        animationFrame
+    );
+
+
+    elapsedTime =
+        performance.now()
+        - startTime;
+
+
+    /* NORMAL */
+
+    if (
+        currentMode === "normal"
+    ) {
+
+        timer.textContent =
+            formatTime(elapsedTime);
+
+        info.textContent =
+            "Gestoppt bei "
+            + formatTime(elapsedTime);
+
+
+        if (
+            isPerfect(elapsedTime)
+        ) {
+
+            info.textContent =
+                "🔥 PERFEKT!";
+
+            celebratePerfect();
+        }
+
+        return;
+    }
+
+
+    /* BLIND */
+
+    if (
+        currentMode === "blind"
+    ) {
+
+        timer.textContent =
+            formatTime(elapsedTime);
+
+        info.textContent =
+            "🕶️ Gestoppt bei "
+            + formatTime(elapsedTime);
+
+        return;
+    }
+
+
+    /* CHALLENGE */
+
+    if (
+        currentMode === "challenge"
+    ) {
+
+        finishChallenge();
+
+        return;
+    }
+
+
+    /* CHALLENGE BLIND */
+
+    if (
+        currentMode ===
+        "challengeBlind"
+    ) {
+
+        finishChallengeBlind();
+
+        return;
+    }
+
+
+    /* FREUNDE */
+
+    if (
+        currentMode === "friends"
+    ) {
+
+        finishFriendAttempt();
+
+        return;
+    }
+}
+
+
+/* =====================================================
+   CHALLENGE
+===================================================== */
+
+function createNewChallenge() {
+
+    clearTimeout(
+        challengeResultTimer
+    );
+
+
+    challengeResultVisible =
+        false;
+
+
+    challengeTarget =
+        createChallengeTarget();
+
+
+    timer.textContent =
+        challengeTarget.toFixed(2);
+
+
+    info.textContent =
+        "🎯 Stoppe genau bei "
+        + challengeTarget.toFixed(2)
+        + " Sekunden";
+}
+
+
+function finishChallenge() {
+
+    const actual =
+        elapsedTime / 1000;
+
+
+    const difference =
+        Math.abs(
+            actual -
+            challengeTarget
+        );
+
+
+    let accuracy =
+        Math.max(
+            0,
+            100 -
+            (
+                difference /
+                challengeTarget *
+                100
+            )
+        );
+
+
+    accuracy =
+        Math.round(
+            accuracy * 100
+        ) / 100;
+
+
+    /*
+      Zuerst drei Sekunden lang
+      die echte gestoppte Zeit.
+    */
+
+    timer.textContent =
+        formatTime(elapsedTime);
+
+
+    info.textContent =
+        "Gestoppt bei "
+        + formatTime(elapsedTime);
+
+
+    if (
+        difference < 0.005
+    ) {
+
+        accuracy = 100;
+
+        info.textContent =
+            "🔥 PERFEKT!";
+
+        celebratePerfect();
+    }
+
+
+    challengeResultVisible =
+        true;
+
+
+    challengeResultTimer =
+        setTimeout(
+            function() {
+
+                if (
+                    !running &&
+                    challengeResultVisible &&
+                    currentMode ===
+                    "challenge"
+                ) {
+
+                    timer.textContent =
+                        accuracy + "%";
+
+                    info.textContent =
+                        "🎯 Genauigkeit";
+                }
+
+            },
+            3000
+        );
+}
+
+
+/* =====================================================
+   CHALLENGE BLIND
+===================================================== */
+
+function createNewChallengeBlind() {
+
+    clearTimeout(
+        challengeBlindResultTimer
+    );
+
+
+    challengeBlindResultVisible =
+        false;
+
+
+    challengeBlindTarget =
+        createChallengeTarget();
+
+
+    timer.textContent =
+        challengeBlindTarget.toFixed(2);
+
+
+    info.textContent =
+        "🎯🕶️ Merke dir die Zeit";
+}
+
+
+function finishChallengeBlind() {
+
+    const actual =
+        elapsedTime / 1000;
+
+
+    const difference =
+        Math.abs(
+            actual -
+            challengeBlindTarget
+        );
+
+
+    let accuracy =
+        Math.max(
+            0,
+            100 -
+            (
+                difference /
+                challengeBlindTarget *
+                100
+            )
+        );
+
+
+    accuracy =
+        Math.round(
+            accuracy * 100
+        ) / 100;
+
+
+    timer.textContent =
+        formatTime(elapsedTime);
+
+
+    info.textContent =
+        "Gestoppt bei "
+        + formatTime(elapsedTime);
+
+
+    if (
+        difference < 0.005
+    ) {
+
+        accuracy = 100;
+
+        info.textContent =
+            "🔥 PERFEKT!";
+
+        celebratePerfect();
+    }
+
+
+    challengeBlindResultVisible =
+        true;
+
+
+    challengeBlindResultTimer =
+        setTimeout(
+            function() {
+
+                if (
+                    !running &&
+                    challengeBlindResultVisible &&
+                    currentMode ===
+                    "challengeBlind"
+                ) {
+
+                    timer.textContent =
+                        accuracy + "%";
+
+                    info.textContent =
+                        "🎯🕶️ Genauigkeit";
+                }
+
+            },
+            3000
+        );
+}
+
+
+/* =====================================================
+   MODUS MENÜ
+===================================================== */
+
+modeButton.addEventListener(
+    "pointerup",
+    function(event) {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+        modeMenu.classList.toggle(
+            "open"
+        );
+    }
+);
+
+
+/* =====================================================
+   MODUS WECHSEL
+===================================================== */
+
+function changeMode(newMode) {
+
+    /*
+      Beim Moduswechsel niemals
+      den Timer starten.
+    */
+
+    running = false;
+
+
+    cancelAnimationFrame(
+        animationFrame
+    );
+
+
+    clearTimeout(
+        challengeResultTimer
+    );
+
+    clearTimeout(
+        challengeBlindResultTimer
+    );
+
+
+    elapsedTime = 0;
+
+
+    challengeResultVisible =
+        false;
+
+    challengeBlindResultVisible =
+        false;
+
+
+    panel.classList.remove(
+        "open"
+    );
+
+
+    modeMenu.classList.remove(
+        "open"
+    );
+
+
+    currentMode =
+        newMode;
+
+
+    if (
+        newMode === "normal"
+    ) {
+
+        modeButton.textContent =
+            "Normalmodus ▾";
+
+        timer.textContent =
+            "00.00";
+
+        info.textContent =
+            "Tippe oder klicke zum Starten";
+
+        return;
+    }
+
+
+    if (
+        newMode === "blind"
+    ) {
+
+        modeButton.textContent =
+            "Blindmodus ▾";
+
+        timer.textContent =
+            "00.00";
+
+        info.textContent =
+            "🕶️ Blindmodus";
+
+        return;
+    }
+
+
+    if (
+        newMode === "challenge"
+    ) {
+
+        modeButton.textContent =
+            "Challenge ▾";
+
+        createNewChallenge();
+
+        return;
+    }
+
+
+    if (
+        newMode ===
+        "challengeBlind"
+    ) {
+
+        modeButton.textContent =
+            "Challenge Blind ▾";
+
+        createNewChallengeBlind();
+
+        return;
+    }
+
+
+    if (
+        newMode === "friends"
+    ) {
+
+        modeButton.textContent =
+            "Freunde ▾";
+
+        timer.textContent =
+            "00.00";
+
+        info.textContent =
+            "👥 Freunde-Modus";
+
+        openFriendsSetup();
+
+        return;
+    }
+}
+
+
+/* =====================================================
+   MODUS BUTTONS
+===================================================== */
+
+document
+.querySelectorAll(".modeButton")
+.forEach(
+    function(button) {
+
+        button.addEventListener(
+            "pointerup",
+            function(event) {
+
+                event.preventDefault();
+
+                event.stopPropagation();
+
+
+                changeMode(
+                    button.dataset.mode
+                );
+            }
+        );
+
+    }
+);
+
+
+/* =====================================================
+   FREUNDE SETUP
+===================================================== */
+
+function openFriendsSetup() {
+
+    panelTitle.textContent =
+        "👥 Freunde-Modus";
+
+
+    panelContent.innerHTML = `
+
+        <p>Erster Name:</p>
+
+        <input
+            id="firstFriendName"
+            placeholder="Name eingeben"
+        >
+
+
+        <p>Anzahl der Versuche:</p>
+
+        <input
+            id="friendAttemptInput"
+            type="number"
+            min="1"
+            max="100"
+            value="10"
+        >
+
+
+        <p>Zielzeit:</p>
+
+        <input
+            id="friendTargetInput"
+            type="number"
+            min="0.01"
+            max="9.99"
+            step="0.01"
+            placeholder="z.B. 5.00"
+        >
+
+
+        <button
+            class="panelButton"
+            id="startFriendsButton"
+        >
+            Spiel starten
+        </button>
+
+
+        <button
+            class="panelButton secondary"
+            id="cancelFriendsButton"
+        >
+            Abbrechen
+        </button>
+    `;
+
+
+    panel.classList.add(
+        "open"
+    );
+
+
+    document
+    .getElementById(
+        "cancelFriendsButton"
+    )
+    .onclick =
+        function() {
+
+            panel.classList.remove(
+                "open"
+            );
+        };
+
+
+    document
+    .getElementById(
+        "startFriendsButton"
+    )
+    .onclick =
+        function() {
+
+            const name =
+                document
+                .getElementById(
+                    "firstFriendName"
+                )
+                .value
+                .trim();
+
+
+            const count =
+                Number(
+                    document
+                    .getElementById(
+                        "friendAttemptInput"
+                    )
+                    .value
+                );
+
+
+            const target =
+                Number(
+                    document
+                    .getElementById(
+                        "friendTargetInput"
+                    )
+                    .value
+                );
+
+
+            if (
+                !name ||
+                count < 1 ||
+                target <= 0 ||
+                target >= 10
+            ) {
+
+                return;
+            }
+
+
+            friends = [
+
+                {
+                    name: name,
+                    scores: [],
+                    average: 0
+                }
+
+            ];
+
+
+            currentFriend = 0;
+
+            friendAttempts =
+                count;
+
+            currentAttempt = 0;
+
+            friendTarget =
+                target;
+
+            friendScores = [];
+
+
+            panel.classList.remove(
+                "open"
+            );
+
+
+            timer.textContent =
+                "00.00";
+
+
+            info.textContent =
+                name
+                + " ist bereit – Ziel "
+                + target.toFixed(2)
+                + " Sekunden";
+        };
+}
+
+
+/* =====================================================
+   FREUNDE VERSUCH
+===================================================== */
+
+function finishFriendAttempt() {
+
+    const actual =
+        elapsedTime / 1000;
+
+
+    const difference =
+        Math.abs(
+            actual -
+            friendTarget
+        );
+
+
+    let accuracy =
+        Math.max(
+            0,
+            100 -
+            (
+                difference /
+                friendTarget *
+                100
+            )
+        );
+
+
+    accuracy =
+        Math.round(
+            accuracy * 100
+        ) / 100;
+
+
+    friendScores.push(
+        accuracy
+    );
+
+
+    currentAttempt++;
+
+
+    timer.textContent =
+        formatTime(elapsedTime);
+
+
+    if (
+        accuracy === 100
+    ) {
+
+        info.textContent =
+            "🔥 PERFEKT!";
+
+        celebratePerfect();
+
+    } else {
+
+        info.textContent =
+            accuracy
+            + "% Genauigkeit";
+    }
+
+
+    if (
+        currentAttempt >=
+        friendAttempts
+    ) {
+
+        const average =
+            Math.round(
+                (
+                    friendScores.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    )
+                    /
+                    friendScores.length
+                ) * 100
+            ) / 100;
+
+
+        friends[currentFriend].scores =
+            friendScores.slice();
+
+
+        friends[currentFriend].average =
+            average;
+
+
+        setTimeout(
+            showFriendResult,
+            500
+        );
+    }
+}
+
+
+/* =====================================================
+   FREUNDE ERGEBNIS
+===================================================== */
+
+function showFriendResult() {
+
+    const player =
+        friends[currentFriend];
+
+
+    panelTitle.textContent =
+        "🏆 Ergebnis";
+
+
+    panelContent.innerHTML = `
+
+        <h2>
+            ${player.name}
+        </h2>
+
+        <p>
+            Durchschnittliche Genauigkeit:
+        </p>
+
+        <h1>
+            ${player.average}%
+        </h1>
+
+        <button
+            class="panelButton"
+            id="nextFriend"
+        >
+            Nächster Spieler
+        </button>
+
+        <button
+            class="panelButton"
+            id="showRanking"
+        >
+            🏆 Rangliste
+        </button>
+    `;
+
+
+    panel.classList.add(
+        "open"
+    );
+
+
+    document
+    .getElementById(
+        "nextFriend"
+    )
+    .onclick =
+        addNextFriend;
+
+
+    document
+    .getElementById(
+        "showRanking"
+    )
+    .onclick =
+        showRanking;
+}
+
+
+/* =====================================================
+   NÄCHSTER FREUND
+===================================================== */
+
+function addNextFriend() {
+
+    panelTitle.textContent =
+        "👥 Nächster Spieler";
+
+
+    panelContent.innerHTML = `
+
+        <p>Name eingeben:</p>
+
+        <input
+            id="nextFriendName"
+            placeholder="Name"
+        >
+
+
+        <button
+            class="panelButton"
+            id="addNextFriendButton"
+        >
+            Spieler hinzufügen
+        </button>
+    `;
+
+
+    document
+    .getElementById(
+        "addNextFriendButton"
+    )
+    .onclick =
+        function() {
+
+            const name =
+                document
+                .getElementById(
+                    "nextFriendName"
+                )
+                .value
+                .trim();
+
+
+            if (!name) {
+                return;
+            }
+
+
+            friends.push({
+
+                name: name,
+
+                scores: [],
+
+                average: 0
+
+            });
+
+
+            currentFriend =
+                friends.length - 1;
+
+
+            currentAttempt = 0;
+
+            friendScores = [];
+
+
+            panel.classList.remove(
+                "open"
+            );
+
+
+            timer.textContent =
+                "00.00";
+
+
+            info.textContent =
+                name
+                + " ist bereit!";
+        };
+}
+
+
+/* =====================================================
+   RANGLISTE
+===================================================== */
+
+function showRanking() {
+
+    const ranking =
+        friends
+        .filter(
+            player =>
+                player.scores.length > 0
+        )
+        .sort(
+            (a, b) =>
+                b.average -
+                a.average
+        );
+
+
+    let rows = "";
+
+
+    ranking.forEach(
+        function(player, index) {
+
+            rows += `
+
+                <tr>
+
+                    <td>
+                        ${index + 1}
+                    </td>
+
+                    <td>
+                        ${player.name}
+                    </td>
+
+                    <td>
+                        ${player.average}%
+                    </td>
+
+                </tr>
+            `;
+        }
+    );
+
+
+    panelTitle.textContent =
+        "🏆 Rangliste";
+
+
+    panelContent.innerHTML = `
+
+        <table>
+
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Genauigkeit</th>
+            </tr>
+
+            ${rows}
+
+        </table>
+
+
+        <button
+            class="panelButton"
+            id="closeRanking"
+        >
+            Weiter
+        </button>
+
+
+        <button
+            class="panelButton danger"
+            id="resetRanking"
+        >
+            🗑️ Tabelle zurücksetzen
+        </button>
+    `;
+
+
+    panel.classList.add(
+        "open"
+    );
+
+
+    document
+    .getElementById(
+        "closeRanking"
+    )
+    .onclick =
+        function() {
+
+            panel.classList.remove(
+                "open"
+            );
+        };
+
+
+    document
+    .getElementById(
+        "resetRanking"
+    )
+    .onclick =
+        function() {
+
+            friends = [];
+
+            currentFriend = 0;
+
+            currentAttempt = 0;
+
+            friendScores = [];
+
+
+            panel.classList.remove(
+                "open"
+            );
+
+
+            changeMode(
+                "normal"
+            );
+        };
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+resetButton.addEventListener(
+    "pointerup",
+    function(event) {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+
+        if (running) {
+            return;
+        }
+
+
+        clearTimeout(
+            challengeResultTimer
+        );
+
+        clearTimeout(
+            challengeBlindResultTimer
+        );
+
+
+        elapsedTime = 0;
+
+        challengeResultVisible =
+            false;
+
+        challengeBlindResultVisible =
+            false;
+
+
+        if (
+            currentMode ===
+            "challenge"
+        ) {
+
+            createNewChallenge();
+
+            return;
+        }
+
+
+        if (
+            currentMode ===
+            "challengeBlind"
+        ) {
+
+            createNewChallengeBlind();
+
+            return;
+        }
+
+
+        timer.textContent =
+            "00.00";
+
+
+        info.textContent =
+            "Tippe oder klicke zum Starten";
+    }
+);
+
+
+/* =====================================================
+   MENÜ UND PANEL
+   DÜRFEN NIE DEN TIMER AUSLÖSEN
+===================================================== */
+
+modeMenu.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        event.stopPropagation();
+    }
+);
+
+
+modeMenu.addEventListener(
+    "touchstart",
+    function(event) {
+
+        event.stopPropagation();
+    },
+    {
+        passive: true
+    }
+);
+
+
+panel.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        event.stopPropagation();
+    }
+);
+
+
+panel.addEventListener(
+    "touchstart",
+    function(event) {
+
+        event.stopPropagation();
+    },
+    {
+        passive: true
+    }
+);
+
+
+/* =====================================================
+   AUSSERHALB DES MENÜS
+===================================================== */
+
+document.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        if (
+            !modeMenu.contains(
+                event.target
+            ) &&
+            event.target !==
+            modeButton
+        ) {
+
+            modeMenu.classList.remove(
+                "open"
+            );
+        }
+    }
+);
+
+
+/* =====================================================
+   FERTIG
+===================================================== */
+
+window.addEventListener(
+    "resize",
+    function() {
+
+        confettiCanvas.width =
+            window.innerWidth;
+
+        confettiCanvas.height =
+            window.innerHeight;
+    }
+);
+
+</script>
+
+</body>
+</html>
