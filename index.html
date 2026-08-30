@@ -2,397 +2,415 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
-<meta name="viewport"
-      content="width=device-width,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no">
-
-<title>Timer</title>
+<title>Kronix Timer</title>
 
 <style>
-* {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    -webkit-user-select: none;
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
 }
 
-html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-
-    background: #0b1020;
-    color: white;
-
-    font-family: Arial, Helvetica, sans-serif;
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#080b12;
+    color:white;
+    font-family:Arial,Helvetica,sans-serif;
 }
 
-body {
-    touch-action: manipulation;
+body{
+    touch-action:manipulation;
 }
 
-/* =========================
-   SPIELFLÄCHE
-========================= */
-
-#gameArea {
-    position: fixed;
-    inset: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    /*
-      Wichtig für Handy:
-      Die Spielfläche darf Touch-Eingaben
-      direkt annehmen.
-    */
-    touch-action: manipulation;
-
-    cursor: pointer;
+button{
+    cursor:pointer;
 }
 
-#timer {
-    font-size: clamp(60px, 18vw, 125px);
-    font-weight: 800;
-
-    letter-spacing: 2px;
-    text-align: center;
-
-    pointer-events: none;
-
-    transition: transform .15s ease;
+#gameArea{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
 }
 
-#info {
-    position: fixed;
-
-    top: 24px;
-    left: 50%;
-
-    transform: translateX(-50%);
-
-    width: 90%;
-
-    text-align: center;
-
-    font-size: 16px;
-
-    opacity: .72;
-
-    pointer-events: none;
+#timer{
+    font-size:clamp(60px,18vw,125px);
+    font-weight:800;
+    letter-spacing:2px;
+    text-align:center;
+    pointer-events:none;
+    transition:.15s;
 }
 
-/* =========================
-   MODUS BUTTON
-========================= */
-
-#modeButton {
-    position: fixed;
-
-    top: 18px;
-    right: 18px;
-
-    z-index: 50;
-
-    border: 0;
-    border-radius: 14px;
-
-    padding: 12px 16px;
-
-    background: #26334d;
-    color: white;
-
-    font-size: 15px;
-    font-weight: bold;
-
-    touch-action: manipulation;
+#info{
+    position:fixed;
+    top:24px;
+    left:50%;
+    transform:translateX(-50%);
+    width:80%;
+    text-align:center;
+    font-size:16px;
+    opacity:.75;
+    pointer-events:none;
 }
 
-#modeMenu {
-    position: fixed;
-
-    top: 68px;
-    right: 18px;
-
-    width: 245px;
-
-    padding: 9px;
-
-    border-radius: 18px;
-
-    background: #182238;
-
-    box-shadow:
-        0 20px 60px rgba(0,0,0,.55);
-
-    display: none;
-
-    z-index: 60;
+#modeButton,
+#designButton,
+#profileButton,
+#rankingButton{
+    position:fixed;
+    top:18px;
+    z-index:50;
+    border:0;
+    border-radius:14px;
+    padding:12px 16px;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
 }
 
-#modeMenu.open {
-    display: block;
+#modeButton{right:18px}
+#designButton{left:18px}
+
+#profileButton{
+    right:18px;
+    top:70px;
+    padding:10px 13px;
 }
 
-.modeButton {
-    width: 100%;
-
-    margin: 4px 0;
-
-    padding: 14px;
-
-    border: 0;
-    border-radius: 11px;
-
-    background: #2b3955;
-    color: white;
-
-    text-align: left;
-
-    font-size: 15px;
-
-    touch-action: manipulation;
+#rankingButton{
+    right:18px;
+    top:122px;
+    padding:10px 13px;
 }
 
-/* =========================
-   RESET
-========================= */
-
-#resetButton {
-    position: fixed;
-
-    bottom: 25px;
-    left: 50%;
-
-    transform: translateX(-50%);
-
-    z-index: 50;
-
-    border: 0;
-    border-radius: 14px;
-
-    padding: 13px 24px;
-
-    background: #ef4444;
-    color: white;
-
-    font-size: 17px;
-    font-weight: bold;
-
-    touch-action: manipulation;
+#modeMenu,
+#designMenu{
+    position:fixed;
+    top:68px;
+    width:250px;
+    padding:9px;
+    border-radius:18px;
+    background:rgba(24,34,56,.97);
+    box-shadow:0 20px 60px rgba(0,0,0,.55);
+    display:none;
+    z-index:100;
 }
 
-/* =========================
-   KLEINER PUNKT
-========================= */
-
-#tinyDot {
-    position: fixed;
-
-    left: 7px;
-    bottom: 7px;
-
-    width: 4px;
-    height: 4px;
-
-    border-radius: 50%;
-
-    background: white;
-
-    opacity: .35;
-
-    pointer-events: none;
+#modeMenu{
+    right:18px;
+    max-height:80vh;
+    overflow-y:auto;
 }
 
-/* =========================
-   PANEL
-========================= */
-
-#panel {
-    position: fixed;
-
-    top: 50%;
-    left: 50%;
-
-    transform: translate(-50%, -50%);
-
-    width: min(91%, 440px);
-
-    max-height: 86vh;
-
-    overflow-y: auto;
-
-    padding: 25px;
-
-    border-radius: 22px;
-
-    background: #182238;
-
-    box-shadow:
-        0 25px 80px rgba(0,0,0,.65);
-
-    display: none;
-
-    z-index: 200;
+#designMenu{
+    left:18px;
 }
 
-#panel.open {
-    display: block;
+#modeMenu.open,
+#designMenu.open{
+    display:block;
 }
 
-#panel h2 {
-    margin-top: 0;
+.modeButton,
+.designChoice{
+    width:100%;
+    margin:4px 0;
+    padding:13px;
+    border:0;
+    border-radius:11px;
+    background:#2b3955;
+    color:white;
+    text-align:left;
+    font-size:15px;
 }
 
-input {
-    width: 100%;
-
-    padding: 14px;
-
-    margin: 5px 0 12px;
-
-    border: 0;
-
-    border-radius: 10px;
-
-    font-size: 17px;
-
-    user-select: text;
-    -webkit-user-select: text;
+.designChoice.active{
+    outline:2px solid white;
 }
 
-.panelButton {
-    width: 100%;
-
-    padding: 14px;
-
-    margin-top: 8px;
-
-    border: 0;
-
-    border-radius: 11px;
-
-    background: #2563eb;
-
-    color: white;
-
-    font-size: 16px;
-
-    touch-action: manipulation;
+#neonControl{
+    margin-top:9px;
+    padding-top:10px;
+    border-top:1px solid rgba(255,255,255,.2);
 }
 
-.panelButton.secondary {
-    background: #475569;
+#neonButton{
+    width:100%;
+    border:0;
+    border-radius:11px;
+    padding:13px;
+    background:#111827;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
 }
 
-.panelButton.danger {
-    background: #dc2626;
+#panel{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:min(91%,440px);
+    max-height:86vh;
+    overflow-y:auto;
+    padding:25px;
+    border-radius:22px;
+    background:#182238;
+    box-shadow:0 25px 80px rgba(0,0,0,.65);
+    display:none;
+    z-index:200;
+}
+
+#panel.open{
+    display:block;
+}
+
+#panel h2{
+    margin-top:0;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    margin:5px 0 12px;
+    border:0;
+    border-radius:10px;
+    font-size:17px;
+    user-select:text;
+}
+
+.panelButton{
+    width:100%;
+    padding:14px;
+    margin-top:8px;
+    border:0;
+    border-radius:11px;
+    background:#2563eb;
+    color:white;
+    font-size:16px;
+}
+
+.panelButton.secondary{
+    background:#475569;
+}
+
+.panelButton.danger{
+    background:#dc2626;
+}
+
+#timer.perfect{
+    animation:perfectAnimation .7s ease;
+}
+
+@keyframes perfectAnimation{
+    0%{transform:scale(1)}
+    35%{transform:scale(1.35)}
+    65%{transform:scale(.9)}
+    100%{transform:scale(1)}
+}
+
+#confettiCanvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:999;
 }
 
 /* =========================
-   TABELLE
+   KONTO
 ========================= */
 
-table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    margin-top: 15px;
+#accountScreen{
+    position:fixed;
+    inset:0;
+    z-index:5000;
+    background:#080b12;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
 
-th, td {
-    padding: 10px 5px;
+.accountBox{
+    width:min(90%,420px);
+    background:#182238;
+    border-radius:25px;
+    padding:30px;
+    box-shadow:0 25px 80px rgba(0,0,0,.7);
+    text-align:center;
+}
 
-    border-bottom:
-        1px solid #3b4964;
+.accountLogo{
+    font-size:42px;
+    font-weight:1000;
+    letter-spacing:7px;
+    text-shadow:0 0 15px #0088ff;
+}
 
-    text-align: center;
+.accountBox h2{
+    margin:12px 0 25px;
+}
+
+.profileImage{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    object-fit:cover;
+    display:block;
+    margin:10px auto 20px;
+    border:3px solid #168cff;
+}
+
+.rankRow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px;
+    margin:6px 0;
+    border-radius:10px;
+    background:rgba(255,255,255,.07);
+}
+
+.rankNumber{
+    width:35px;
+    font-weight:bold;
+}
+
+.rankAvatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.rankName{
+    flex:1;
+    text-align:left;
+}
+
+.rankScore{
+    font-weight:bold;
+}
+
+.smallText{
+    opacity:.7;
+    font-size:13px;
 }
 
 /* =========================
-   PERFEKT
+   LADEBILDSCHIRM
 ========================= */
 
-#timer.perfect {
-    animation:
-        perfectAnimation .7s ease;
+#kronix-loading{
+    position:fixed;
+    inset:0;
+    z-index:999999;
+    background:
+        radial-gradient(circle at center,#10243b 0%,#05080d 55%,#000 100%);
+    overflow:hidden;
+    color:white;
 }
 
-@keyframes perfectAnimation {
+#kronix-dvd{
+    position:absolute;
+    left:5%;
+    top:5%;
+    text-align:center;
+    animation:dvdMove 8s linear infinite;
+}
 
-    0% {
-        transform: scale(1);
+.kronix-logo{
+    font-size:clamp(45px,10vw,70px);
+    font-weight:1000;
+    letter-spacing:8px;
+    color:white;
+    text-shadow:
+        0 0 8px #00aaff,
+        0 0 20px #0088ff,
+        0 0 45px #0055ff;
+}
+
+.kronix-subtitle{
+    margin-top:8px;
+    font-size:15px;
+    font-weight:bold;
+    letter-spacing:5px;
+    color:#00aaff;
+}
+
+.kronix-loading-text{
+    position:absolute;
+    bottom:75px;
+    width:100%;
+    text-align:center;
+    font-size:42px;
+    font-weight:bold;
+}
+
+.kronix-status{
+    position:absolute;
+    bottom:38px;
+    width:100%;
+    text-align:center;
+    font-size:14px;
+    letter-spacing:5px;
+    color:#00aaff;
+}
+
+@keyframes dvdMove{
+    0%{left:5%;top:5%}
+    25%{left:65%;top:25%}
+    50%{left:45%;top:70%}
+    75%{left:10%;top:45%}
+    100%{left:5%;top:5%}
+}
+
+@media(max-width:600px){
+
+    #modeButton,
+    #designButton{
+        top:12px;
+        padding:11px 13px;
     }
 
-    35% {
-        transform: scale(1.35);
+    #modeButton{right:12px}
+    #designButton{left:12px}
+
+    #modeMenu,
+    #designMenu{
+        top:60px;
+        width:225px;
     }
 
-    65% {
-        transform: scale(.9);
+    #modeMenu{right:12px}
+    #designMenu{left:12px}
+
+    #profileButton{
+        right:12px;
+        top:62px;
     }
 
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* =========================
-   KONFETTI
-========================= */
-
-#confettiCanvas {
-    position: fixed;
-
-    inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    pointer-events: none;
-
-    z-index: 999;
-}
-
-/* =========================
-   HANDY
-========================= */
-
-@media (max-width: 600px) {
-
-    #modeButton {
-        top: 12px;
-        right: 12px;
-
-        padding: 11px 13px;
+    #rankingButton{
+        right:12px;
+        top:112px;
     }
 
-    #modeMenu {
-        top: 60px;
-        right: 12px;
-
-        width: 220px;
+    #info{
+        top:72px;
+        font-size:14px;
     }
 
-    #info {
-        top: 72px;
-
-        font-size: 14px;
-    }
-
-    #resetButton {
-        bottom: 16px;
-    }
-
-    #panel {
-        padding: 21px;
+    #panel{
+        padding:21px;
     }
 }
 </style>
@@ -401,77 +419,157 @@ th, td {
 <body>
 
 <!-- =========================
-     SPIELFLÄCHE
+     KONTO
+========================= -->
+
+<div id="accountScreen">
+
+    <div class="accountBox">
+
+        <div class="accountLogo">KRONIX</div>
+
+        <h2 id="accountTitle">
+            Konto erstellen
+        </h2>
+
+        <p id="accountDescription">
+            Erstelle dein Kronix-Konto.
+        </p>
+
+        <input
+            id="accountUsername"
+            type="text"
+            maxlength="20"
+            placeholder="Benutzername">
+
+        <input
+            id="accountPassword"
+            type="password"
+            maxlength="40"
+            placeholder="Passwort">
+
+        <button
+            class="panelButton"
+            id="accountMainButton">
+            Konto erstellen
+        </button>
+
+        <button
+            class="panelButton secondary"
+            id="accountSwitchButton">
+            Ich habe bereits ein Konto
+        </button>
+
+    </div>
+</div>
+
+<!-- =========================
+     SPIEL
 ========================= -->
 
 <div id="gameArea">
-
-    <div id="timer">
-        00.00
-    </div>
-
+    <div id="timer">00.00</div>
 </div>
 
 <div id="info">
     Tippe oder klicke zum Starten
 </div>
 
-
-<!-- =========================
-     MODUS
-========================= -->
-
 <button id="modeButton">
     Normalmodus ▾
 </button>
 
+<button id="designButton">
+    Design ▾
+</button>
+
+<button id="profileButton">
+    👤
+</button>
+
+<button id="rankingButton">
+    🏆 0
+</button>
+
+<!-- =========================
+     MODI
+========================= -->
+
 <div id="modeMenu">
 
-    <button class="modeButton"
-            data-mode="normal">
+    <button class="modeButton" data-mode="normal">
         ⏱️ Normalmodus
     </button>
 
-    <button class="modeButton"
-            data-mode="blind">
+    <button class="modeButton" data-mode="blind">
         🕶️ Blindmodus
     </button>
 
-    <button class="modeButton"
-            data-mode="challenge">
+    <button class="modeButton" data-mode="challenge">
         🎯 Challenge
     </button>
 
-    <button class="modeButton"
-            data-mode="challengeBlind">
+    <button class="modeButton" data-mode="challengeBlind">
         🎯🕶️ Challenge Blind
     </button>
 
-    <button class="modeButton"
-            data-mode="friends">
+    <button class="modeButton" data-mode="oneSecond">
+        🎯 Stoppe bei 1,00
+    </button>
+
+    <button class="modeButton" data-mode="fiveSecond">
+        🎯 Stoppe bei 5,00
+    </button>
+
+    <button class="modeButton" data-mode="tenSecond">
+        🎯 Stoppe bei 10,00
+    </button>
+
+    <button class="modeButton" data-mode="friends">
         👥 Freunde
     </button>
 
 </div>
 
-
 <!-- =========================
-     RESET
+     DESIGNS
 ========================= -->
 
-<button id="resetButton">
-    Zurücksetzen
-</button>
+<div id="designMenu">
 
+    <button class="designChoice" data-design="blue">
+        Blau
+    </button>
 
-<!-- KLEINER PUNKT -->
+    <button class="designChoice" data-design="blueWhite">
+        Blau & Weiß
+    </button>
 
-<div id="tinyDot"></div>
+    <button class="designChoice" data-design="blueBlack">
+        Blau & Schwarz
+    </button>
 
+    <button class="designChoice" data-design="blackWhite">
+        Schwarz & Weiß
+    </button>
 
-<!-- =========================
-     PANEL
-========================= -->
+    <button class="designChoice" data-design="kronixBlue">
+        Kronix Blau
+    </button>
+
+    <button class="designChoice" data-design="whiteBlackBlue">
+        Weiß, Schwarz & Blau
+    </button>
+
+    <div id="neonControl">
+
+        <button id="neonButton">
+            ✨ Neon: AUS
+        </button>
+
+    </div>
+
+</div>
 
 <div id="panel">
 
@@ -481,60 +579,630 @@ th, td {
 
 </div>
 
-
-<!-- KONFETTI -->
-
 <canvas id="confettiCanvas"></canvas>
 
+<!-- =========================
+     KRONIX LOADING
+========================= -->
+
+<div id="kronix-loading">
+
+    <div id="kronix-dvd">
+
+        <div class="kronix-logo">
+            KRONIX
+        </div>
+
+        <div class="kronix-subtitle">
+            WE CREATE GAMES
+        </div>
+
+    </div>
+
+    <div class="kronix-loading-text">
+
+        <span id="kronix-percent">
+            0
+        </span>%
+
+    </div>
+
+    <div class="kronix-status">
+        LÄDT...
+    </div>
+
+</div>
 
 <script>
 
 /* =====================================================
-   VARIABLEN
+   KONTO-SYSTEM
 ===================================================== */
 
-let currentMode = "normal";
+let currentUser = null;
+let accountLoginMode = false;
 
-let running = false;
+const accountScreen =
+    document.getElementById("accountScreen");
 
-let startTime = 0;
+const accountTitle =
+    document.getElementById("accountTitle");
 
-let elapsedTime = 0;
+const accountDescription =
+    document.getElementById("accountDescription");
 
-let animationFrame = null;
+const accountUsername =
+    document.getElementById("accountUsername");
 
+const accountPassword =
+    document.getElementById("accountPassword");
 
-/* Challenge */
+const accountMainButton =
+    document.getElementById("accountMainButton");
 
-let challengeTarget = 0;
-
-let challengeResultVisible = false;
-
-let challengeResultTimer = null;
-
-
-/* Challenge Blind */
-
-let challengeBlindTarget = 0;
-
-let challengeBlindResultVisible = false;
-
-let challengeBlindResultTimer = null;
+const accountSwitchButton =
+    document.getElementById("accountSwitchButton");
 
 
-/* Freunde */
+function getAccounts(){
+
+    try{
+
+        return JSON.parse(
+            localStorage.getItem(
+                "kronixAccounts"
+            ) || "{}"
+        );
+
+    }catch{
+
+        return {};
+
+    }
+}
+
+
+function saveAccounts(accounts){
+
+    localStorage.setItem(
+        "kronixAccounts",
+        JSON.stringify(accounts)
+    );
+
+}
+
+
+function updateAccountScreen(){
+
+    const accounts =
+        getAccounts();
+
+    if(
+        Object.keys(accounts).length === 0
+    ){
+
+        accountLoginMode = false;
+
+        accountTitle.textContent =
+            "Konto erstellen";
+
+        accountDescription.textContent =
+            "Erstelle dein Kronix-Konto.";
+
+        accountMainButton.textContent =
+            "Konto erstellen";
+
+        accountSwitchButton.textContent =
+            "Ich habe bereits ein Konto";
+
+    }else{
+
+        accountLoginMode = true;
+
+        accountTitle.textContent =
+            "Anmelden";
+
+        accountDescription.textContent =
+            "Melde dich mit deinem Benutzernamen und Passwort an.";
+
+        accountMainButton.textContent =
+            "Anmelden";
+
+        accountSwitchButton.textContent =
+            "Neues Konto erstellen";
+
+    }
+
+}
+
+
+accountSwitchButton.onclick =
+function(){
+
+    accountLoginMode =
+        !accountLoginMode;
+
+    if(accountLoginMode){
+
+        accountTitle.textContent =
+            "Anmelden";
+
+        accountDescription.textContent =
+            "Benutzername und Passwort eingeben.";
+
+        accountMainButton.textContent =
+            "Anmelden";
+
+        accountSwitchButton.textContent =
+            "Neues Konto erstellen";
+
+    }else{
+
+        accountTitle.textContent =
+            "Konto erstellen";
+
+        accountDescription.textContent =
+            "Erstelle dein Kronix-Konto.";
+
+        accountMainButton.textContent =
+            "Konto erstellen";
+
+        accountSwitchButton.textContent =
+            "Ich habe bereits ein Konto";
+
+    }
+
+};
+
+
+accountMainButton.onclick =
+function(){
+
+    const username =
+        accountUsername.value.trim();
+
+    const password =
+        accountPassword.value;
+
+    if(username.length < 3){
+
+        alert(
+            "Der Benutzername muss mindestens 3 Zeichen haben."
+        );
+
+        return;
+
+    }
+
+    if(password.length < 4){
+
+        alert(
+            "Das Passwort muss mindestens 4 Zeichen haben."
+        );
+
+        return;
+
+    }
+
+    const accounts =
+        getAccounts();
+
+    /* LOGIN */
+
+    if(accountLoginMode){
+
+        if(!accounts[username]){
+
+            alert(
+                "Dieses Konto gibt es nicht."
+            );
+
+            return;
+
+        }
+
+        if(
+            accounts[username].password !==
+            password
+        ){
+
+            alert(
+                "Falsches Passwort."
+            );
+
+            return;
+
+        }
+
+        currentUser =
+            username;
+
+        localStorage.setItem(
+            "kronixLoggedIn",
+            username
+        );
+
+        accountScreen.style.display =
+            "none";
+
+        updateRankingButton();
+
+        return;
+
+    }
+
+    /* KONTO ERSTELLEN */
+
+    if(accounts[username]){
+
+        alert(
+            "Dieser Benutzername ist bereits vergeben."
+        );
+
+        return;
+
+    }
+
+    accounts[username] = {
+
+        password:password,
+
+        image:"",
+
+        perfects:0,
+
+        ranks:{
+            challenge:0,
+            challengeBlind:0,
+            oneSecond:0,
+            fiveSecond:0,
+            tenSecond:0
+        },
+
+        created:Date.now()
+
+    };
+
+    saveAccounts(accounts);
+
+    currentUser =
+        username;
+
+    localStorage.setItem(
+        "kronixLoggedIn",
+        username
+    );
+
+    accountScreen.style.display =
+        "none";
+
+    updateRankingButton();
+
+};
+
+
+function loadSavedAccount(){
+
+    const username =
+        localStorage.getItem(
+            "kronixLoggedIn"
+        );
+
+    const accounts =
+        getAccounts();
+
+    if(
+        username &&
+        accounts[username]
+    ){
+
+        currentUser =
+            username;
+
+        accountScreen.style.display =
+            "none";
+
+    }else{
+
+        accountScreen.style.display =
+            "flex";
+
+    }
+
+    updateAccountScreen();
+
+}
+
+
+function getCurrentAccount(){
+
+    const accounts =
+        getAccounts();
+
+    return currentUser
+        ? accounts[currentUser]
+        : null;
+
+}
+
+
+function updateAccount(callback){
+
+    const accounts =
+        getAccounts();
+
+    if(
+        !currentUser ||
+        !accounts[currentUser]
+    ){
+
+        return;
+
+    }
+
+    callback(
+        accounts[currentUser]
+    );
+
+    saveAccounts(accounts);
+
+}
+
+
+/* =====================================================
+   PROFIL
+===================================================== */
+
+const profileButton =
+    document.getElementById(
+        "profileButton"
+    );
+
+const panel =
+    document.getElementById(
+        "panel"
+    );
+
+const panelTitle =
+    document.getElementById(
+        "panelTitle"
+    );
+
+const panelContent =
+    document.getElementById(
+        "panelContent"
+    );
+
+
+profileButton.onclick =
+function(){
+
+    if(!currentUser)return;
+
+    const account =
+        getCurrentAccount();
+
+    panelTitle.textContent =
+        "👤 Mein Profil";
+
+    panelContent.innerHTML = `
+
+        <img
+            class="profileImage"
+            id="profilePreview"
+            src="${
+                account.image ||
+                'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2290%22 height=%2290%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23334155%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2250%22%3E👤%3C/text%3E%3C/svg%3E'
+            }">
+
+        <h3>
+            ${escapeHTML(currentUser)}
+        </h3>
+
+        <p>
+            ⭐ 100%-Erfolge:
+            <strong>
+                ${account.perfects || 0}
+            </strong>
+        </p>
+
+        <input
+            id="profileImageInput"
+            type="file"
+            accept="image/*">
+
+        <button
+            class="panelButton"
+            id="saveProfileImage">
+            Profilbild speichern
+        </button>
+
+        <button
+            class="panelButton danger"
+            id="logoutButton">
+            Abmelden
+        </button>
+
+        <button
+            class="panelButton secondary"
+            id="closeProfile">
+            Schließen
+        </button>
+
+    `;
+
+    panel.classList.add("open");
+
+    let selectedImage =
+        account.image || "";
+
+    document.getElementById(
+        "profileImageInput"
+    ).onchange =
+    function(){
+
+        const file =
+            this.files[0];
+
+        if(!file)return;
+
+        const reader =
+            new FileReader();
+
+        reader.onload =
+        function(){
+
+            selectedImage =
+                reader.result;
+
+            document.getElementById(
+                "profilePreview"
+            ).src =
+                selectedImage;
+
+        };
+
+        reader.readAsDataURL(file);
+
+    };
+
+
+    document.getElementById(
+        "saveProfileImage"
+    ).onclick =
+    function(){
+
+        updateAccount(
+            function(account){
+
+                account.image =
+                    selectedImage;
+
+            }
+        );
+
+        panel.classList.remove(
+            "open"
+        );
+
+    };
+
+
+    document.getElementById(
+        "logoutButton"
+    ).onclick =
+    function(){
+
+        localStorage.removeItem(
+            "kronixLoggedIn"
+        );
+
+        currentUser =
+            null;
+
+        panel.classList.remove(
+            "open"
+        );
+
+        accountScreen.style.display =
+            "flex";
+
+        updateAccountScreen();
+
+    };
+
+
+    document.getElementById(
+        "closeProfile"
+    ).onclick =
+    function(){
+
+        panel.classList.remove(
+            "open"
+        );
+
+    };
+
+};
+
+
+function escapeHTML(text){
+
+    return String(text)
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        );
+
+}
+
+
+/* =====================================================
+   SPIEL-VARIABLEN
+===================================================== */
+
+let currentMode =
+    "normal";
+
+let running =
+    false;
+
+let startTime =
+    0;
+
+let elapsedTime =
+    0;
+
+let animationFrame =
+    null;
+
+let challengeTarget =
+    0;
+
+let resultVisible =
+    false;
+
+let resultTimer =
+    null;
 
 let friends = [];
 
-let currentFriend = 0;
+let currentFriend =
+    0;
 
-let friendAttempts = 10;
+let friendAttempts =
+    10;
 
-let currentAttempt = 0;
+let currentAttempt =
+    0;
 
-let friendTarget = 5;
+let friendTarget =
+    5;
 
-let friendScores = [];
+let friendScores =
+    [];
+
+let currentDesign =
+    "kronixBlue";
+
+let neonEnabled =
+    false;
 
 
 /* =====================================================
@@ -542,80 +1210,415 @@ let friendScores = [];
 ===================================================== */
 
 const gameArea =
-    document.getElementById("gameArea");
+    document.getElementById(
+        "gameArea"
+    );
 
 const timer =
-    document.getElementById("timer");
+    document.getElementById(
+        "timer"
+    );
 
 const info =
-    document.getElementById("info");
+    document.getElementById(
+        "info"
+    );
 
 const modeButton =
-    document.getElementById("modeButton");
+    document.getElementById(
+        "modeButton"
+    );
 
 const modeMenu =
-    document.getElementById("modeMenu");
+    document.getElementById(
+        "modeMenu"
+    );
 
-const resetButton =
-    document.getElementById("resetButton");
+const designButton =
+    document.getElementById(
+        "designButton"
+    );
 
-const panel =
-    document.getElementById("panel");
+const designMenu =
+    document.getElementById(
+        "designMenu"
+    );
 
-const panelTitle =
-    document.getElementById("panelTitle");
+const neonButton =
+    document.getElementById(
+        "neonButton"
+    );
 
-const panelContent =
-    document.getElementById("panelContent");
+const rankingButton =
+    document.getElementById(
+        "rankingButton"
+    );
 
 const confettiCanvas =
-    document.getElementById("confettiCanvas");
+    document.getElementById(
+        "confettiCanvas"
+    );
 
 
 /* =====================================================
    ZEIT
 ===================================================== */
 
-function formatTime(milliseconds) {
+function formatTime(milliseconds){
 
     const seconds =
-        Math.floor(milliseconds / 1000);
+        Math.floor(
+            milliseconds / 1000
+        );
 
     const hundredths =
         Math.floor(
             (milliseconds % 1000) / 10
         );
 
-    return (
-        String(seconds).padStart(2, "0")
+    return String(seconds)
+        .padStart(2,"0")
         + "."
-        + String(hundredths).padStart(2, "0")
-    );
+        +
+        String(hundredths)
+        .padStart(2,"0");
+
 }
 
 
 /* =====================================================
-   CHALLENGE ZIEL
+   GENAUIGKEIT
 ===================================================== */
 
-function createChallengeTarget() {
+function calculateAccuracy(
+    actual,
+    target
+){
+
+    if(target <= 0)
+        return 0;
+
+    const difference =
+        Math.abs(
+            actual - target
+        );
+
+    let accuracy =
+        100 -
+        (
+            difference /
+            target *
+            100
+        );
+
+    accuracy =
+        Math.max(
+            0,
+            accuracy
+        );
+
+    /*
+       WICHTIG:
+       Immer auf 2 Nachkommastellen
+       runden.
+    */
 
     return Math.round(
-        (Math.random() * 8.99 + 1) * 100
+        accuracy * 100
     ) / 100;
+
+}
+
+
+function accuracyText(
+    accuracy
+){
+
+    return accuracy
+        .toFixed(2)
+        .replace(".",",")
+        + " %";
+
+}
+
+
+/*
+   Ein echter Treffer:
+   maximal 0,005 Sekunden Unterschied.
+*/
+
+function isPerfectTarget(
+    actual,
+    target
+){
+
+    return Math.abs(
+        actual - target
+    ) <= 0.005;
+
 }
 
 
 /* =====================================================
-   PERFEKTER TREFFER
+   RANG-LISTEN
 ===================================================== */
 
-function isPerfect(milliseconds) {
+const rankingNames = {
 
-    const hundredths =
-        Math.round(milliseconds / 10);
+    challenge:
+        "🎯 Challenge",
 
-    return hundredths % 100 === 0;
+    challengeBlind:
+        "🎯🕶️ Challenge Blind",
+
+    oneSecond:
+        "🎯 Stoppe bei 1 Sekunde",
+
+    fiveSecond:
+        "🎯 Stoppe bei 5 Sekunden",
+
+    tenSecond:
+        "🎯 Stoppe bei 10 Sekunden"
+
+};
+
+
+function rankingAllowed(){
+
+    return Object.prototype.hasOwnProperty.call(
+        rankingNames,
+        currentMode
+    );
+
+}
+
+
+function updateRankingButton(){
+
+    if(!rankingAllowed()){
+
+        rankingButton.style.display =
+            "none";
+
+        return;
+
+    }
+
+    rankingButton.style.display =
+        "block";
+
+    const account =
+        getCurrentAccount();
+
+    const score =
+        account &&
+        account.ranks
+        ? account.ranks[currentMode] || 0
+        : 0;
+
+    rankingButton.textContent =
+        "🏆 " + score;
+
+}
+
+
+function addRankingPerfect(){
+
+    if(!rankingAllowed())
+        return;
+
+    updateAccount(
+        function(account){
+
+            if(!account.ranks)
+                account.ranks = {};
+
+            account.ranks[currentMode] =
+                Number(
+                    account.ranks[currentMode] || 0
+                ) + 1;
+
+        }
+    );
+
+    updateRankingButton();
+
+}
+
+
+function addPerfect(){
+
+    updateAccount(
+        function(account){
+
+            account.perfects =
+                Number(
+                    account.perfects || 0
+                ) + 1;
+
+        }
+    );
+
+    addRankingPerfect();
+
+}
+
+
+/* =====================================================
+   RANGLISTE ANZEIGEN
+===================================================== */
+
+rankingButton.onclick =
+function(){
+
+    if(!rankingAllowed())
+        return;
+
+    showGlobalRanking();
+
+};
+
+
+function showGlobalRanking(){
+
+    const accounts =
+        getAccounts();
+
+    const ranking =
+        Object.entries(accounts)
+
+        .map(
+            function(entry){
+
+                return {
+
+                    username:
+                        entry[0],
+
+                    account:
+                        entry[1],
+
+                    score:
+                        entry[1].ranks
+                        ?
+                        Number(
+                            entry[1].ranks[
+                                currentMode
+                            ] || 0
+                        )
+                        :
+                        0
+
+                };
+
+            }
+        )
+
+        .filter(
+            player =>
+                player.score > 0
+        )
+
+        .sort(
+            (a,b) =>
+                b.score -
+                a.score
+        );
+
+    let html = "";
+
+    ranking.forEach(
+        function(player,index){
+
+            const image =
+                player.account.image ||
+                "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2238%22 height=%2238%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23334155%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2225%22%3E👤%3C/text%3E%3C/svg%3E";
+
+            html += `
+
+                <div class="rankRow">
+
+                    <div class="rankNumber">
+                        ${index + 1}.
+                    </div>
+
+                    <img
+                        class="rankAvatar"
+                        src="${image}">
+
+                    <div class="rankName">
+                        ${escapeHTML(
+                            player.username
+                        )}
+                    </div>
+
+                    <div class="rankScore">
+                        ⭐ ${player.score}
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+    panelTitle.textContent =
+        "🏆 " +
+        rankingNames[currentMode];
+
+    panelContent.innerHTML = `
+
+        <p class="smallText">
+            Rangliste der 100%-Erfolge
+            in diesem Modus
+        </p>
+
+        ${
+            html ||
+            "<p>Noch keine 100%-Erfolge.</p>"
+        }
+
+        <button
+            class="panelButton secondary"
+            id="closeGlobalRanking">
+            Schließen
+        </button>
+
+    `;
+
+    panel.classList.add(
+        "open"
+    );
+
+    document.getElementById(
+        "closeGlobalRanking"
+    ).onclick =
+    function(){
+
+        panel.classList.remove(
+            "open"
+        );
+
+    };
+
+}
+
+
+/* =====================================================
+   CHALLENGE-ZIEL
+===================================================== */
+
+function createChallengeTarget(){
+
+    return Math.round(
+        (
+            Math.random() *
+            8.99 +
+            1
+        ) * 100
+    ) / 100;
+
 }
 
 
@@ -623,44 +1626,46 @@ function isPerfect(milliseconds) {
    KONFETTI
 ===================================================== */
 
-function startConfetti() {
+function startConfetti(){
 
     const canvas =
         confettiCanvas;
 
     const ctx =
-        canvas.getContext("2d");
-
+        canvas.getContext(
+            "2d"
+        );
 
     canvas.width =
-        window.innerWidth;
+        innerWidth;
 
     canvas.height =
-        window.innerHeight;
-
+        innerHeight;
 
     const colors = [
-        "#ff3b30",
-        "#ffcc00",
-        "#34c759",
-        "#007aff",
-        "#af52de",
-        "#ff2d55"
-    ];
 
+        "#00aaff",
+        "#ffffff",
+        "#0055ff",
+        "#66ccff"
+
+    ];
 
     const pieces = [];
 
-
-    for (let i = 0; i < 170; i++) {
+    for(
+        let i = 0;
+        i < 150;
+        i++
+    ){
 
         pieces.push({
 
             x:
-                window.innerWidth / 2,
+                innerWidth / 2,
 
             y:
-                window.innerHeight / 2,
+                innerHeight / 2,
 
             vx:
                 (Math.random() - .5) * 16,
@@ -683,15 +1688,16 @@ function startConfetti() {
             color:
                 colors[
                     Math.floor(
-                        Math.random()
-                        * colors.length
+                        Math.random() *
+                        colors.length
                     )
                 ]
+
         });
+
     }
 
-
-    function draw() {
+    function draw(){
 
         ctx.clearRect(
             0,
@@ -700,82 +1706,468 @@ function startConfetti() {
             canvas.height
         );
 
+        let alive =
+            false;
 
-        let alive = false;
+        pieces.forEach(
+            function(piece){
 
+                if(
+                    piece.life <= 0
+                )
+                    return;
 
-        pieces.forEach(piece => {
+                alive =
+                    true;
 
-            if (piece.life <= 0) {
-                return;
-            }
+                piece.x +=
+                    piece.vx;
 
+                piece.y +=
+                    piece.vy;
 
-            alive = true;
+                piece.vy +=
+                    .35;
 
+                piece.rotation +=
+                    piece.rotationSpeed;
 
-            piece.x += piece.vx;
+                piece.life -=
+                    .012;
 
-            piece.y += piece.vy;
+                ctx.save();
 
-            piece.vy += .35;
+                ctx.globalAlpha =
+                    Math.max(
+                        0,
+                        piece.life
+                    );
 
-            piece.rotation +=
-                piece.rotationSpeed;
-
-            piece.life -= .012;
-
-
-            ctx.save();
-
-            ctx.globalAlpha =
-                Math.max(
-                    0,
-                    piece.life
+                ctx.translate(
+                    piece.x,
+                    piece.y
                 );
 
-            ctx.translate(
-                piece.x,
-                piece.y
+                ctx.rotate(
+                    piece.rotation *
+                    Math.PI /
+                    180
+                );
+
+                ctx.fillStyle =
+                    piece.color;
+
+                ctx.fillRect(
+                    -piece.size / 2,
+                    -piece.size / 2,
+                    piece.size,
+                    piece.size * 1.8
+                );
+
+                ctx.restore();
+
+            }
+        );
+
+        if(alive){
+
+            requestAnimationFrame(
+                draw
             );
 
-            ctx.rotate(
-                piece.rotation
-                * Math.PI / 180
-            );
-
-            ctx.fillStyle =
-                piece.color;
-
-            ctx.fillRect(
-                -piece.size / 2,
-                -piece.size / 2,
-                piece.size,
-                piece.size * 1.8
-            );
-
-            ctx.restore();
-
-        });
-
-
-        if (alive) {
-
-            requestAnimationFrame(draw);
-
-        } else {
-
-            ctx.clearRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
         }
+
+    }
+
+    draw();
+
+}
+
+
+/* =====================================================
+   TIMER
+===================================================== */
+
+function updateTimer(){
+
+    if(!running)
+        return;
+
+    elapsedTime =
+        performance.now() -
+        startTime;
+
+    if(
+        currentMode === "blind" ||
+        currentMode === "challengeBlind"
+    ){
+
+        timer.textContent =
+            "???";
+
+    }else{
+
+        timer.textContent =
+            formatTime(
+                elapsedTime
+            );
+
+    }
+
+    animationFrame =
+        requestAnimationFrame(
+            updateTimer
+        );
+
+}
+
+
+/* =====================================================
+   NEUER MODUS-START
+===================================================== */
+
+function createNewTarget(){
+
+    clearTimeout(
+        resultTimer
+    );
+
+    resultVisible =
+        false;
+
+    if(
+        currentMode === "challenge" ||
+        currentMode === "challengeBlind"
+    ){
+
+        challengeTarget =
+            createChallengeTarget();
+
+    }
+
+    if(
+        currentMode === "oneSecond"
+    ){
+
+        challengeTarget =
+            1;
+
+    }
+
+    if(
+        currentMode === "fiveSecond"
+    ){
+
+        challengeTarget =
+            5;
+
+    }
+
+    if(
+        currentMode === "tenSecond"
+    ){
+
+        challengeTarget =
+            10;
+
+    }
+
+    timer.textContent =
+        challengeTarget.toFixed(2);
+
+    if(
+        currentMode ===
+        "challengeBlind"
+    ){
+
+        info.textContent =
+            "🎯🕶️ Merke dir die Zeit";
+
+    }else{
+
+        info.textContent =
+            "🎯 Stoppe genau bei " +
+            challengeTarget.toFixed(2) +
+            " Sekunden";
+
+    }
+
+}
+
+
+/* =====================================================
+   SPIEL
+===================================================== */
+
+gameArea.addEventListener(
+    "pointerup",
+    function(event){
+
+        event.preventDefault();
+
+        handleGameTap();
+
+    }
+);
+
+
+function handleGameTap(){
+
+    /*
+       Ergebnis anklicken =
+       neue Runde.
+    */
+
+    if(resultVisible){
+
+        createNewTarget();
+
+        return;
+
     }
 
 
-    draw();
+    /*
+       START
+    */
+
+    if(!running){
+
+        startTime =
+            performance.now();
+
+        elapsedTime =
+            0;
+
+        running =
+            true;
+
+
+        if(
+            currentMode ===
+            "normal"
+        ){
+
+            info.textContent =
+                "Tippe zum Stoppen";
+
+        }
+
+
+        if(
+            currentMode ===
+            "blind"
+        ){
+
+            info.textContent =
+                "🕶️ Stoppe nach Gefühl";
+
+        }
+
+
+        if(
+            currentMode ===
+            "challenge"
+        ){
+
+            info.textContent =
+                "🎯 Stoppe genau bei " +
+                challengeTarget.toFixed(2) +
+                " Sekunden";
+
+        }
+
+
+        if(
+            currentMode ===
+            "challengeBlind"
+        ){
+
+            info.textContent =
+                "🎯🕶️ Stoppe nach Gefühl";
+
+        }
+
+
+        if(
+            currentMode === "oneSecond" ||
+            currentMode === "fiveSecond" ||
+            currentMode === "tenSecond"
+        ){
+
+            info.textContent =
+                "🎯 Stoppe genau bei " +
+                challengeTarget.toFixed(2) +
+                " Sekunden";
+
+        }
+
+
+        if(
+            currentMode ===
+            "friends"
+        ){
+
+            info.textContent =
+                friends[currentFriend].name +
+                " – Versuch " +
+                (currentAttempt + 1) +
+                " von " +
+                friendAttempts;
+
+        }
+
+        updateTimer();
+
+        return;
+
+    }
+
+
+    /*
+       STOP
+    */
+
+    running =
+        false;
+
+    cancelAnimationFrame(
+        animationFrame
+    );
+
+    elapsedTime =
+        performance.now() -
+        startTime;
+
+    const actual =
+        elapsedTime / 1000;
+
+
+    if(
+        currentMode === "normal" ||
+        currentMode === "blind"
+    ){
+
+        timer.textContent =
+            formatTime(
+                elapsedTime
+            );
+
+        info.textContent =
+            "Gestoppt bei " +
+            formatTime(
+                elapsedTime
+            );
+
+        return;
+
+    }
+
+
+    if(
+        currentMode === "challenge" ||
+        currentMode === "challengeBlind" ||
+        currentMode === "oneSecond" ||
+        currentMode === "fiveSecond" ||
+        currentMode === "tenSecond"
+    ){
+
+        finishTarget(
+            actual
+        );
+
+        return;
+
+    }
+
+
+    if(
+        currentMode ===
+        "friends"
+    ){
+
+        finishFriendAttempt();
+
+    }
+
+}
+
+
+/* =====================================================
+   ZIEL-MODI AUSWERTEN
+===================================================== */
+
+function finishTarget(
+    actual
+){
+
+    const accuracy =
+        calculateAccuracy(
+            actual,
+            challengeTarget
+        );
+
+    timer.textContent =
+        formatTime(
+            elapsedTime
+        );
+
+
+    if(
+        isPerfectTarget(
+            actual,
+            challengeTarget
+        )
+    ){
+
+        info.textContent =
+            "🔥 PERFEKT! 100%";
+
+        celebratePerfect();
+
+    }else{
+
+        info.textContent =
+            "Gestoppt bei " +
+            formatTime(
+                elapsedTime
+            ) +
+            " – " +
+            accuracyText(
+                accuracy
+            ) +
+            " Genauigkeit";
+
+    }
+
+
+    resultVisible =
+        true;
+
+
+    resultTimer =
+        setTimeout(
+            function(){
+
+                if(
+                    !running &&
+                    resultVisible
+                ){
+
+                    timer.textContent =
+                        accuracyText(
+                            accuracy
+                        );
+
+                    info.textContent =
+                        "🎯 Genauigkeit";
+
+                }
+
+            },
+            2000
+        );
+
 }
 
 
@@ -783,7 +2175,9 @@ function startConfetti() {
    PERFEKT
 ===================================================== */
 
-function celebratePerfect() {
+function celebratePerfect(){
+
+    addPerfect();
 
     timer.classList.remove(
         "perfect"
@@ -796,763 +2190,150 @@ function celebratePerfect() {
     );
 
     startConfetti();
+
 }
-
-
-/* =====================================================
-   TIMER AKTUALISIEREN
-===================================================== */
-
-function updateTimer() {
-
-    if (!running) {
-        return;
-    }
-
-
-    elapsedTime =
-        performance.now()
-        - startTime;
-
-
-    if (
-        currentMode === "blind" ||
-        currentMode === "challengeBlind"
-    ) {
-
-        timer.textContent =
-            "???";
-
-    } else {
-
-        timer.textContent =
-            formatTime(elapsedTime);
-    }
-
-
-    animationFrame =
-        requestAnimationFrame(
-            updateTimer
-        );
-}
-
-
-/* =====================================================
-   ⭐ HANDY + PC ⭐
-
-   Das ist der wichtige Teil.
-
-   Handy:
-   touchstart / touchend
-
-   PC:
-   mousedown / mouseup
-
-   Außerdem verhindert das System,
-   dass ein Handy-Tap doppelt gezählt wird.
-===================================================== */
-
-let touchInProgress = false;
-
-
-/* HANDY */
-
-gameArea.addEventListener(
-    "touchstart",
-    function(event) {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-        touchInProgress = true;
-
-    },
-    {
-        passive: false
-    }
-);
-
-
-gameArea.addEventListener(
-    "touchend",
-    function(event) {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-
-        handleGameTap();
-
-
-        /*
-          Kurz warten, damit der Browser
-          den anschließenden Click nicht
-          nochmal als zweiten Tap zählt.
-        */
-
-        setTimeout(
-            function() {
-                touchInProgress = false;
-            },
-            350
-        );
-
-    },
-    {
-        passive: false
-    }
-);
-
-
-/* PC-MAUS */
-
-gameArea.addEventListener(
-    "mouseup",
-    function(event) {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-
-        /*
-          Wenn gerade ein Finger-Tap
-          verarbeitet wurde, ignorieren.
-        */
-
-        if (touchInProgress) {
-            return;
-        }
-
-
-        handleGameTap();
-    }
-);
-
-
-/* Falls ein Browser nur click liefert */
-
-gameArea.addEventListener(
-    "click",
-    function(event) {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-
-        if (touchInProgress) {
-            return;
-        }
-
-        /*
-          Maus-Click wird über mouseup
-          verarbeitet.
-        */
-    }
-);
-
-
-/* =====================================================
-   START / STOP
-===================================================== */
-
-function handleGameTap() {
-
-
-    /* Challenge Ergebnis */
-
-    if (
-        currentMode === "challenge" &&
-        challengeResultVisible
-    ) {
-
-        createNewChallenge();
-
-        return;
-    }
-
-
-    /* Challenge Blind Ergebnis */
-
-    if (
-        currentMode === "challengeBlind" &&
-        challengeBlindResultVisible
-    ) {
-
-        createNewChallengeBlind();
-
-        return;
-    }
-
-
-    /* START */
-
-    if (!running) {
-
-        startTime =
-            performance.now();
-
-        elapsedTime = 0;
-
-        running = true;
-
-
-        if (
-            currentMode === "normal"
-        ) {
-
-            info.textContent =
-                "Tippe zum Stoppen";
-        }
-
-
-        if (
-            currentMode === "blind"
-        ) {
-
-            info.textContent =
-                "🕶️ Stoppe nach Gefühl";
-        }
-
-
-        if (
-            currentMode === "challenge"
-        ) {
-
-            info.textContent =
-                "🎯 Stoppe genau bei "
-                + challengeTarget.toFixed(2)
-                + " Sekunden";
-        }
-
-
-        if (
-            currentMode ===
-            "challengeBlind"
-        ) {
-
-            info.textContent =
-                "🎯🕶️ Stoppe nach Gefühl";
-        }
-
-
-        if (
-            currentMode === "friends"
-        ) {
-
-            info.textContent =
-                friends[currentFriend].name
-                + " – Versuch "
-                + (currentAttempt + 1)
-                + " von "
-                + friendAttempts;
-        }
-
-
-        updateTimer();
-
-        return;
-    }
-
-
-    /* STOP */
-
-    running = false;
-
-    cancelAnimationFrame(
-        animationFrame
-    );
-
-
-    elapsedTime =
-        performance.now()
-        - startTime;
-
-
-    /* NORMAL */
-
-    if (
-        currentMode === "normal"
-    ) {
-
-        timer.textContent =
-            formatTime(elapsedTime);
-
-        info.textContent =
-            "Gestoppt bei "
-            + formatTime(elapsedTime);
-
-
-        if (
-            isPerfect(elapsedTime)
-        ) {
-
-            info.textContent =
-                "🔥 PERFEKT!";
-
-            celebratePerfect();
-        }
-
-        return;
-    }
-
-
-    /* BLIND */
-
-    if (
-        currentMode === "blind"
-    ) {
-
-        timer.textContent =
-            formatTime(elapsedTime);
-
-        info.textContent =
-            "🕶️ Gestoppt bei "
-            + formatTime(elapsedTime);
-
-        return;
-    }
-
-
-    /* CHALLENGE */
-
-    if (
-        currentMode === "challenge"
-    ) {
-
-        finishChallenge();
-
-        return;
-    }
-
-
-    /* CHALLENGE BLIND */
-
-    if (
-        currentMode ===
-        "challengeBlind"
-    ) {
-
-        finishChallengeBlind();
-
-        return;
-    }
-
-
-    /* FREUNDE */
-
-    if (
-        currentMode === "friends"
-    ) {
-
-        finishFriendAttempt();
-
-        return;
-    }
-}
-
-
-/* =====================================================
-   CHALLENGE
-===================================================== */
-
-function createNewChallenge() {
-
-    clearTimeout(
-        challengeResultTimer
-    );
-
-
-    challengeResultVisible =
-        false;
-
-
-    challengeTarget =
-        createChallengeTarget();
-
-
-    timer.textContent =
-        challengeTarget.toFixed(2);
-
-
-    info.textContent =
-        "🎯 Stoppe genau bei "
-        + challengeTarget.toFixed(2)
-        + " Sekunden";
-}
-
-
-function finishChallenge() {
-
-    const actual =
-        elapsedTime / 1000;
-
-
-    const difference =
-        Math.abs(
-            actual -
-            challengeTarget
-        );
-
-
-    let accuracy =
-        Math.max(
-            0,
-            100 -
-            (
-                difference /
-                challengeTarget *
-                100
-            )
-        );
-
-
-    accuracy =
-        Math.round(
-            accuracy * 100
-        ) / 100;
-
-
-    /*
-      Zuerst drei Sekunden lang
-      die echte gestoppte Zeit.
-    */
-
-    timer.textContent =
-        formatTime(elapsedTime);
-
-
-    info.textContent =
-        "Gestoppt bei "
-        + formatTime(elapsedTime);
-
-
-    if (
-        difference < 0.005
-    ) {
-
-        accuracy = 100;
-
-        info.textContent =
-            "🔥 PERFEKT!";
-
-        celebratePerfect();
-    }
-
-
-    challengeResultVisible =
-        true;
-
-
-    challengeResultTimer =
-        setTimeout(
-            function() {
-
-                if (
-                    !running &&
-                    challengeResultVisible &&
-                    currentMode ===
-                    "challenge"
-                ) {
-
-                    timer.textContent =
-                        accuracy + "%";
-
-                    info.textContent =
-                        "🎯 Genauigkeit";
-                }
-
-            },
-            3000
-        );
-}
-
-
-/* =====================================================
-   CHALLENGE BLIND
-===================================================== */
-
-function createNewChallengeBlind() {
-
-    clearTimeout(
-        challengeBlindResultTimer
-    );
-
-
-    challengeBlindResultVisible =
-        false;
-
-
-    challengeBlindTarget =
-        createChallengeTarget();
-
-
-    timer.textContent =
-        challengeBlindTarget.toFixed(2);
-
-
-    info.textContent =
-        "🎯🕶️ Merke dir die Zeit";
-}
-
-
-function finishChallengeBlind() {
-
-    const actual =
-        elapsedTime / 1000;
-
-
-    const difference =
-        Math.abs(
-            actual -
-            challengeBlindTarget
-        );
-
-
-    let accuracy =
-        Math.max(
-            0,
-            100 -
-            (
-                difference /
-                challengeBlindTarget *
-                100
-            )
-        );
-
-
-    accuracy =
-        Math.round(
-            accuracy * 100
-        ) / 100;
-
-
-    timer.textContent =
-        formatTime(elapsedTime);
-
-
-    info.textContent =
-        "Gestoppt bei "
-        + formatTime(elapsedTime);
-
-
-    if (
-        difference < 0.005
-    ) {
-
-        accuracy = 100;
-
-        info.textContent =
-            "🔥 PERFEKT!";
-
-        celebratePerfect();
-    }
-
-
-    challengeBlindResultVisible =
-        true;
-
-
-    challengeBlindResultTimer =
-        setTimeout(
-            function() {
-
-                if (
-                    !running &&
-                    challengeBlindResultVisible &&
-                    currentMode ===
-                    "challengeBlind"
-                ) {
-
-                    timer.textContent =
-                        accuracy + "%";
-
-                    info.textContent =
-                        "🎯🕶️ Genauigkeit";
-                }
-
-            },
-            3000
-        );
-}
-
-
-/* =====================================================
-   MODUS MENÜ
-===================================================== */
-
-modeButton.addEventListener(
-    "pointerup",
-    function(event) {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-        modeMenu.classList.toggle(
-            "open"
-        );
-    }
-);
 
 
 /* =====================================================
    MODUS WECHSEL
 ===================================================== */
 
-function changeMode(newMode) {
+function changeMode(
+    newMode
+){
 
-    /*
-      Beim Moduswechsel niemals
-      den Timer starten.
-    */
-
-    running = false;
-
+    running =
+        false;
 
     cancelAnimationFrame(
         animationFrame
     );
 
-
     clearTimeout(
-        challengeResultTimer
+        resultTimer
     );
 
-    clearTimeout(
-        challengeBlindResultTimer
-    );
+    elapsedTime =
+        0;
 
-
-    elapsedTime = 0;
-
-
-    challengeResultVisible =
+    resultVisible =
         false;
 
-    challengeBlindResultVisible =
-        false;
-
+    currentMode =
+        newMode;
 
     panel.classList.remove(
         "open"
     );
-
 
     modeMenu.classList.remove(
         "open"
     );
 
 
-    currentMode =
-        newMode;
+    const names = {
+
+        normal:
+            "Normalmodus",
+
+        blind:
+            "Blindmodus",
+
+        challenge:
+            "Challenge",
+
+        challengeBlind:
+            "Challenge Blind",
+
+        oneSecond:
+            "Stoppe bei 1,00",
+
+        fiveSecond:
+            "Stoppe bei 5,00",
+
+        tenSecond:
+            "Stoppe bei 10,00",
+
+        friends:
+            "Freunde"
+
+    };
 
 
-    if (
-        newMode === "normal"
-    ) {
+    modeButton.textContent =
+        names[newMode] +
+        " ▾";
 
-        modeButton.textContent =
-            "Normalmodus ▾";
 
-        timer.textContent =
-            "00.00";
+    updateRankingButton();
 
-        info.textContent =
-            "Tippe oder klicke zum Starten";
+
+    if(
+        newMode === "challenge" ||
+        newMode === "challengeBlind" ||
+        newMode === "oneSecond" ||
+        newMode === "fiveSecond" ||
+        newMode === "tenSecond"
+    ){
+
+        createNewTarget();
 
         return;
+
     }
 
 
-    if (
-        newMode === "blind"
-    ) {
+    timer.textContent =
+        "00.00";
 
-        modeButton.textContent =
-            "Blindmodus ▾";
 
-        timer.textContent =
-            "00.00";
+    if(
+        newMode ===
+        "blind"
+    ){
 
         info.textContent =
             "🕶️ Blindmodus";
 
-        return;
-    }
-
-
-    if (
-        newMode === "challenge"
-    ) {
-
-        modeButton.textContent =
-            "Challenge ▾";
-
-        createNewChallenge();
-
-        return;
-    }
-
-
-    if (
+    }else if(
         newMode ===
-        "challengeBlind"
-    ) {
-
-        modeButton.textContent =
-            "Challenge Blind ▾";
-
-        createNewChallengeBlind();
-
-        return;
-    }
-
-
-    if (
-        newMode === "friends"
-    ) {
-
-        modeButton.textContent =
-            "Freunde ▾";
-
-        timer.textContent =
-            "00.00";
+        "friends"
+    ){
 
         info.textContent =
             "👥 Freunde-Modus";
 
         openFriendsSetup();
 
-        return;
+    }else{
+
+        info.textContent =
+            "Tippe oder klicke zum Starten";
+
     }
+
 }
 
 
-/* =====================================================
-   MODUS BUTTONS
-===================================================== */
-
 document
-.querySelectorAll(".modeButton")
+.querySelectorAll(
+    ".modeButton"
+)
 .forEach(
-    function(button) {
+    function(button){
 
         button.addEventListener(
             "pointerup",
-            function(event) {
+            function(e){
 
-                event.preventDefault();
+                e.preventDefault();
 
-                event.stopPropagation();
-
+                e.stopPropagation();
 
                 changeMode(
                     button.dataset.mode
                 );
+
             }
         );
 
@@ -1561,250 +2342,220 @@ document
 
 
 /* =====================================================
-   FREUNDE SETUP
+   FREUNDE
+   KEINE RANGLISTE
 ===================================================== */
 
-function openFriendsSetup() {
+function openFriendsSetup(){
 
     panelTitle.textContent =
         "👥 Freunde-Modus";
 
-
     panelContent.innerHTML = `
 
-        <p>Erster Name:</p>
+        <p>
+            Erster Name:
+        </p>
 
         <input
             id="firstFriendName"
-            placeholder="Name eingeben"
-        >
+            placeholder="Name eingeben">
 
-
-        <p>Anzahl der Versuche:</p>
+        <p>
+            Anzahl der Versuche:
+        </p>
 
         <input
             id="friendAttemptInput"
             type="number"
             min="1"
             max="100"
-            value="10"
-        >
+            value="10">
 
-
-        <p>Zielzeit:</p>
+        <p>
+            Zielzeit:
+        </p>
 
         <input
             id="friendTargetInput"
             type="number"
             min="0.01"
-            max="9.99"
+            max="99.99"
             step="0.01"
-            placeholder="z.B. 5.00"
-        >
-
+            placeholder="z.B. 5.00">
 
         <button
             class="panelButton"
-            id="startFriendsButton"
-        >
+            id="startFriendsButton">
             Spiel starten
         </button>
 
-
         <button
             class="panelButton secondary"
-            id="cancelFriendsButton"
-        >
+            id="cancelFriendsButton">
             Abbrechen
         </button>
-    `;
 
+    `;
 
     panel.classList.add(
         "open"
     );
 
 
-    document
-    .getElementById(
+    document.getElementById(
         "cancelFriendsButton"
-    )
-    .onclick =
-        function() {
+    ).onclick =
+    function(){
 
-            panel.classList.remove(
-                "open"
-            );
-        };
+        panel.classList.remove(
+            "open"
+        );
+
+    };
 
 
-    document
-    .getElementById(
+    document.getElementById(
         "startFriendsButton"
-    )
-    .onclick =
-        function() {
+    ).onclick =
+    function(){
 
-            const name =
-                document
-                .getElementById(
-                    "firstFriendName"
-                )
-                .value
-                .trim();
+        const name =
+            document.getElementById(
+                "firstFriendName"
+            ).value.trim();
 
+        const count =
+            Number(
+                document.getElementById(
+                    "friendAttemptInput"
+                ).value
+            );
 
-            const count =
-                Number(
-                    document
-                    .getElementById(
-                        "friendAttemptInput"
-                    )
-                    .value
-                );
-
-
-            const target =
-                Number(
-                    document
-                    .getElementById(
-                        "friendTargetInput"
-                    )
-                    .value
-                );
+        const target =
+            Number(
+                document.getElementById(
+                    "friendTargetInput"
+                ).value
+            );
 
 
-            if (
-                !name ||
-                count < 1 ||
-                target <= 0 ||
-                target >= 10
-            ) {
+        if(
+            !name ||
+            count < 1 ||
+            target <= 0
+        ){
 
-                return;
+            return;
+
+        }
+
+
+        friends = [
+
+            {
+                name:name,
+                scores:[],
+                average:0
             }
 
-
-            friends = [
-
-                {
-                    name: name,
-                    scores: [],
-                    average: 0
-                }
-
-            ];
+        ];
 
 
-            currentFriend = 0;
+        currentFriend =
+            0;
 
-            friendAttempts =
-                count;
+        friendAttempts =
+            count;
 
-            currentAttempt = 0;
+        currentAttempt =
+            0;
 
-            friendTarget =
-                target;
+        friendTarget =
+            target;
 
-            friendScores = [];
-
-
-            panel.classList.remove(
-                "open"
-            );
+        friendScores =
+            [];
 
 
-            timer.textContent =
-                "00.00";
+        panel.classList.remove(
+            "open"
+        );
 
 
-            info.textContent =
-                name
-                + " ist bereit – Ziel "
-                + target.toFixed(2)
-                + " Sekunden";
-        };
+        timer.textContent =
+            "00.00";
+
+        info.textContent =
+            name +
+            " ist bereit – Ziel " +
+            target.toFixed(2) +
+            " Sekunden";
+
+    };
+
 }
 
 
-/* =====================================================
-   FREUNDE VERSUCH
-===================================================== */
-
-function finishFriendAttempt() {
+function finishFriendAttempt(){
 
     const actual =
         elapsedTime / 1000;
 
-
-    const difference =
-        Math.abs(
-            actual -
+    const accuracy =
+        calculateAccuracy(
+            actual,
             friendTarget
         );
-
-
-    let accuracy =
-        Math.max(
-            0,
-            100 -
-            (
-                difference /
-                friendTarget *
-                100
-            )
-        );
-
-
-    accuracy =
-        Math.round(
-            accuracy * 100
-        ) / 100;
 
 
     friendScores.push(
         accuracy
     );
 
-
     currentAttempt++;
 
 
     timer.textContent =
-        formatTime(elapsedTime);
+        formatTime(
+            elapsedTime
+        );
 
 
-    if (
-        accuracy === 100
-    ) {
-
-        info.textContent =
-            "🔥 PERFEKT!";
-
-        celebratePerfect();
-
-    } else {
+    if(
+        isPerfectTarget(
+            actual,
+            friendTarget
+        )
+    ){
 
         info.textContent =
-            accuracy
-            + "% Genauigkeit";
+            "🔥 PERFEKT! 100%";
+
+    }else{
+
+        info.textContent =
+            accuracyText(
+                accuracy
+            ) +
+            " Genauigkeit";
+
     }
 
 
-    if (
+    if(
         currentAttempt >=
         friendAttempts
-    ) {
+    ){
 
         const average =
             Math.round(
                 (
                     friendScores.reduce(
-                        (sum, value) =>
+                        (sum,value) =>
                             sum + value,
                         0
-                    )
-                    /
+                    ) /
                     friendScores.length
                 ) * 100
             ) / 100;
@@ -1812,7 +2563,6 @@ function finishFriendAttempt() {
 
         friends[currentFriend].scores =
             friendScores.slice();
-
 
         friends[currentFriend].average =
             average;
@@ -1822,15 +2572,13 @@ function finishFriendAttempt() {
             showFriendResult,
             500
         );
+
     }
+
 }
 
 
-/* =====================================================
-   FREUNDE ERGEBNIS
-===================================================== */
-
-function showFriendResult() {
+function showFriendResult(){
 
     const player =
         friends[currentFriend];
@@ -1843,7 +2591,9 @@ function showFriendResult() {
     panelContent.innerHTML = `
 
         <h2>
-            ${player.name}
+            ${escapeHTML(
+                player.name
+            )}
         </h2>
 
         <p>
@@ -1851,22 +2601,23 @@ function showFriendResult() {
         </p>
 
         <h1>
-            ${player.average}%
+            ${accuracyText(
+                player.average
+            )}
         </h1>
 
         <button
             class="panelButton"
-            id="nextFriend"
-        >
+            id="nextFriend">
             Nächster Spieler
         </button>
 
         <button
-            class="panelButton"
-            id="showRanking"
-        >
-            🏆 Rangliste
+            class="panelButton secondary"
+            id="closeFriendResult">
+            Schließen
         </button>
+
     `;
 
 
@@ -1875,28 +2626,27 @@ function showFriendResult() {
     );
 
 
-    document
-    .getElementById(
+    document.getElementById(
         "nextFriend"
-    )
-    .onclick =
-        addNextFriend;
+    ).onclick =
+    addNextFriend;
 
 
-    document
-    .getElementById(
-        "showRanking"
-    )
-    .onclick =
-        showRanking;
+    document.getElementById(
+        "closeFriendResult"
+    ).onclick =
+    function(){
+
+        panel.classList.remove(
+            "open"
+        );
+
+    };
+
 }
 
 
-/* =====================================================
-   NÄCHSTER FREUND
-===================================================== */
-
-function addNextFriend() {
+function addNextFriend(){
 
     panelTitle.textContent =
         "👥 Nächster Spieler";
@@ -1904,363 +2654,459 @@ function addNextFriend() {
 
     panelContent.innerHTML = `
 
-        <p>Name eingeben:</p>
+        <p>
+            Name eingeben:
+        </p>
 
         <input
             id="nextFriendName"
-            placeholder="Name"
-        >
-
+            placeholder="Name">
 
         <button
             class="panelButton"
-            id="addNextFriendButton"
-        >
+            id="addNextFriendButton">
             Spieler hinzufügen
         </button>
+
     `;
 
 
-    document
-    .getElementById(
+    document.getElementById(
         "addNextFriendButton"
-    )
-    .onclick =
-        function() {
+    ).onclick =
+    function(){
 
-            const name =
-                document
-                .getElementById(
-                    "nextFriendName"
-                )
-                .value
-                .trim();
+        const name =
+            document.getElementById(
+                "nextFriendName"
+            ).value.trim();
 
 
-            if (!name) {
-                return;
-            }
-
-
-            friends.push({
-
-                name: name,
-
-                scores: [],
-
-                average: 0
-
-            });
-
-
-            currentFriend =
-                friends.length - 1;
-
-
-            currentAttempt = 0;
-
-            friendScores = [];
-
-
-            panel.classList.remove(
-                "open"
-            );
-
-
-            timer.textContent =
-                "00.00";
-
-
-            info.textContent =
-                name
-                + " ist bereit!";
-        };
-}
-
-
-/* =====================================================
-   RANGLISTE
-===================================================== */
-
-function showRanking() {
-
-    const ranking =
-        friends
-        .filter(
-            player =>
-                player.scores.length > 0
-        )
-        .sort(
-            (a, b) =>
-                b.average -
-                a.average
-        );
-
-
-    let rows = "";
-
-
-    ranking.forEach(
-        function(player, index) {
-
-            rows += `
-
-                <tr>
-
-                    <td>
-                        ${index + 1}
-                    </td>
-
-                    <td>
-                        ${player.name}
-                    </td>
-
-                    <td>
-                        ${player.average}%
-                    </td>
-
-                </tr>
-            `;
-        }
-    );
-
-
-    panelTitle.textContent =
-        "🏆 Rangliste";
-
-
-    panelContent.innerHTML = `
-
-        <table>
-
-            <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Genauigkeit</th>
-            </tr>
-
-            ${rows}
-
-        </table>
-
-
-        <button
-            class="panelButton"
-            id="closeRanking"
-        >
-            Weiter
-        </button>
-
-
-        <button
-            class="panelButton danger"
-            id="resetRanking"
-        >
-            🗑️ Tabelle zurücksetzen
-        </button>
-    `;
-
-
-    panel.classList.add(
-        "open"
-    );
-
-
-    document
-    .getElementById(
-        "closeRanking"
-    )
-    .onclick =
-        function() {
-
-            panel.classList.remove(
-                "open"
-            );
-        };
-
-
-    document
-    .getElementById(
-        "resetRanking"
-    )
-    .onclick =
-        function() {
-
-            friends = [];
-
-            currentFriend = 0;
-
-            currentAttempt = 0;
-
-            friendScores = [];
-
-
-            panel.classList.remove(
-                "open"
-            );
-
-
-            changeMode(
-                "normal"
-            );
-        };
-}
-
-
-/* =====================================================
-   RESET
-===================================================== */
-
-resetButton.addEventListener(
-    "pointerup",
-    function(event) {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-
-        if (running) {
+        if(!name)
             return;
-        }
 
 
-        clearTimeout(
-            challengeResultTimer
+        friends.push({
+
+            name:name,
+            scores:[],
+            average:0
+
+        });
+
+
+        currentFriend =
+            friends.length - 1;
+
+        currentAttempt =
+            0;
+
+        friendScores =
+            [];
+
+
+        panel.classList.remove(
+            "open"
         );
-
-        clearTimeout(
-            challengeBlindResultTimer
-        );
-
-
-        elapsedTime = 0;
-
-        challengeResultVisible =
-            false;
-
-        challengeBlindResultVisible =
-            false;
-
-
-        if (
-            currentMode ===
-            "challenge"
-        ) {
-
-            createNewChallenge();
-
-            return;
-        }
-
-
-        if (
-            currentMode ===
-            "challengeBlind"
-        ) {
-
-            createNewChallengeBlind();
-
-            return;
-        }
 
 
         timer.textContent =
             "00.00";
 
-
         info.textContent =
-            "Tippe oder klicke zum Starten";
+            name +
+            " ist bereit!";
+
+    };
+
+}
+
+
+/* =====================================================
+   MENÜS
+===================================================== */
+
+modeButton.addEventListener(
+    "pointerup",
+    function(e){
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+        modeMenu.classList.toggle(
+            "open"
+        );
+
+        designMenu.classList.remove(
+            "open"
+        );
+
+    }
+);
+
+
+designButton.addEventListener(
+    "pointerup",
+    function(e){
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+        designMenu.classList.toggle(
+            "open"
+        );
+
+        modeMenu.classList.remove(
+            "open"
+        );
+
     }
 );
 
 
 /* =====================================================
-   MENÜ UND PANEL
-   DÜRFEN NIE DEN TIMER AUSLÖSEN
+   DESIGNS
 ===================================================== */
 
-modeMenu.addEventListener(
-    "pointerdown",
-    function(event) {
+const designs = {
 
-        event.stopPropagation();
-    }
-);
+    blue:{
 
+        background:"#071a2b",
+        timer:"#168cff",
+        button:"#0d4f88",
+        info:"#7ecbff"
 
-modeMenu.addEventListener(
-    "touchstart",
-    function(event) {
-
-        event.stopPropagation();
     },
-    {
-        passive: true
-    }
-);
 
+    blueWhite:{
 
-panel.addEventListener(
-    "pointerdown",
-    function(event) {
+        background:"#102d46",
+        timer:"#ffffff",
+        button:"#147dcc",
+        info:"#dceeff"
 
-        event.stopPropagation();
-    }
-);
-
-
-panel.addEventListener(
-    "touchstart",
-    function(event) {
-
-        event.stopPropagation();
     },
-    {
-        passive: true
+
+    blueBlack:{
+
+        background:"#02070d",
+        timer:"#149cff",
+        button:"#123b5b",
+        info:"#73c8ff"
+
+    },
+
+    blackWhite:{
+
+        background:"#050505",
+        timer:"#ffffff",
+        button:"#242424",
+        info:"#dddddd"
+
+    },
+
+    kronixBlue:{
+
+        background:"#07101c",
+        timer:"#00aaff",
+        button:"#07518a",
+        info:"#66cfff"
+
+    },
+
+    whiteBlackBlue:{
+
+        background:"#101820",
+        timer:"#ffffff",
+        button:"#1169a8",
+        info:"#62bfff"
+
+    }
+
+};
+
+
+function applyDesign(){
+
+    const d =
+        designs[currentDesign];
+
+
+    document.body.style.background =
+        d.background;
+
+    gameArea.style.background =
+        d.background;
+
+    timer.style.color =
+        d.timer;
+
+    modeButton.style.background =
+        d.button;
+
+    designButton.style.background =
+        d.button;
+
+    profileButton.style.background =
+        d.button;
+
+    rankingButton.style.background =
+        d.button;
+
+    info.style.color =
+        d.info;
+
+
+    timer.style.textShadow =
+        neonEnabled
+
+        ?
+
+        "0 0 8px " +
+        d.timer +
+        ",0 0 20px " +
+        d.timer +
+        ",0 0 40px " +
+        d.timer
+
+        :
+
+        "none";
+
+
+    document
+    .querySelectorAll(
+        ".designChoice"
+    )
+    .forEach(
+        function(button){
+
+            button.classList.toggle(
+                "active",
+                button.dataset.design ===
+                currentDesign
+            );
+
+        }
+    );
+
+}
+
+
+document
+.querySelectorAll(
+    ".designChoice"
+)
+.forEach(
+    function(button){
+
+        button.addEventListener(
+            "pointerup",
+            function(e){
+
+                e.preventDefault();
+
+                e.stopPropagation();
+
+                currentDesign =
+                    button.dataset.design;
+
+                applyDesign();
+
+            }
+        );
+
+    }
+);
+
+
+neonButton.addEventListener(
+    "pointerup",
+    function(e){
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+        neonEnabled =
+            !neonEnabled;
+
+        neonButton.textContent =
+            neonEnabled
+            ?
+            "✨ Neon: EIN"
+            :
+            "✨ Neon: AUS";
+
+        applyDesign();
+
     }
 );
 
 
 /* =====================================================
-   AUSSERHALB DES MENÜS
+   MENÜ-BLOCKIERUNG
 ===================================================== */
+
+modeMenu.addEventListener(
+    "pointerup",
+    e =>
+        e.stopPropagation()
+);
+
+designMenu.addEventListener(
+    "pointerup",
+    e =>
+        e.stopPropagation()
+);
+
+panel.addEventListener(
+    "pointerup",
+    e =>
+        e.stopPropagation()
+);
+
 
 document.addEventListener(
-    "pointerdown",
-    function(event) {
+    "pointerup",
+    function(event){
 
-        if (
+        if(
             !modeMenu.contains(
                 event.target
             ) &&
             event.target !==
             modeButton
-        ) {
+        ){
 
             modeMenu.classList.remove(
                 "open"
             );
+
         }
+
+
+        if(
+            !designMenu.contains(
+                event.target
+            ) &&
+            event.target !==
+            designButton
+        ){
+
+            designMenu.classList.remove(
+                "open"
+            );
+
+        }
+
     }
 );
 
 
 /* =====================================================
-   FERTIG
+   RESIZE
 ===================================================== */
 
 window.addEventListener(
     "resize",
-    function() {
+    function(){
 
         confettiCanvas.width =
-            window.innerWidth;
+            innerWidth;
 
         confettiCanvas.height =
-            window.innerHeight;
+            innerHeight;
+
     }
 );
+
+
+/* =====================================================
+   START
+===================================================== */
+
+applyDesign();
+
+loadSavedAccount();
+
+updateRankingButton();
+
+
+/* =====================================================
+   KRONIX LADEBILDSCHIRM
+===================================================== */
+
+let kronixProgress =
+    0;
+
+const kronixPercent =
+    document.getElementById(
+        "kronix-percent"
+    );
+
+const kronixLoading =
+    document.getElementById(
+        "kronix-loading"
+    );
+
+
+const kronixInterval =
+    setInterval(
+        function(){
+
+            kronixProgress +=
+                1;
+
+
+            if(
+                kronixProgress >=
+                100
+            ){
+
+                kronixProgress =
+                    100;
+
+                clearInterval(
+                    kronixInterval
+                );
+
+
+                setTimeout(
+                    function(){
+
+                        kronixLoading.style.transition =
+                            "opacity .6s";
+
+                        kronixLoading.style.opacity =
+                            "0";
+
+
+                        setTimeout(
+                            function(){
+
+                                kronixLoading.remove();
+
+                            },
+                            600
+                        );
+
+                    },
+                    300
+                );
+
+            }
+
+
+            kronixPercent.textContent =
+                kronixProgress;
+
+        },
+        35
+    );
 
 </script>
 
