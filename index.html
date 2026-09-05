@@ -414,6 +414,7 @@ input{
     }
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -459,6 +460,14 @@ input{
             id="accountSwitchButton">
             Ich habe bereits ein Konto
         </button>
+
+        <button
+            class="panelButton secondary"
+            id="guestButton">
+            Als Gast spielen
+        </button>
+
+        <p class="smallText" id="accountHint"></p>
 
     </div>
 </div>
@@ -616,10 +625,47 @@ input{
 <script>
 
 /* =====================================================
-   KONTO-SYSTEM
+   SUPABASE-VERBINDUNG (Online-Konten & Rangliste)
+
+   Hier die zwei Werte aus dem Supabase-Projekt eintragen:
+   supabase.com → Projekt → Settings → API
+   Solange die Platzhalter drinstehen, läuft das Spiel
+   im Offline-Modus (nur Gast, Punkte bleiben am Gerät).
 ===================================================== */
 
-let currentUser = null;
+const SUPABASE_URL =
+    "https://ygdgqpedwdpbxlicviks.supabase.co";
+
+const SUPABASE_ANON_KEY =
+    "sb_publishable_QtZnXFRDB8ypHHmOuY-qLg_MI-52tM5";
+
+const supabaseClient =
+    (
+        typeof supabase !== "undefined" &&
+        SUPABASE_URL.startsWith("https://")
+    )
+    ? supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    )
+    : null;
+
+function isOnline(){
+    return supabaseClient !== null;
+}
+
+/* =====================================================
+   KONTO-SYSTEM
+
+   Konten liegen jetzt auf dem Server (Supabase Auth).
+   Passwörter werden dort automatisch verschlüsselt
+   gespeichert. Als Gast bleibt alles im localStorage.
+===================================================== */
+
+let currentUser = null;      /* Anzeigename */
+let currentUserId = null;    /* Server-ID des Kontos */
+let currentProfile = null;   /* { image, perfects, ranks } */
+let isGuest = false;
 let accountLoginMode = false;
 
 const accountScreen =
@@ -644,74 +690,152 @@ const accountSwitchButton =
     document.getElementById("accountSwitchButton");
 
 
-function getAccounts(){
+const DEFAULT_AVATAR_BIG =
+    'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2290%22 height=%2290%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23334155%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2250%22%3E👤%3C/text%3E%3C/svg%3E';
+
+const DEFAULT_AVATAR_SMALL =
+    "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2238%22 height=%2238%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23334155%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2225%22%3E👤%3C/text%3E%3C/svg%3E";
+
+
+function emptyProfile(){
+
+    return {
+        image:"",
+        perfects:0,
+        ranks:{
+            challenge:0,
+            challengeBlind:0,
+            oneSecond:0,
+            fiveSecond:0,
+            tenSecond:0
+        }
+    };
+
+}
+
+
+/* Gast-Punkte bleiben nur auf diesem Gerät */
+
+function getGuestProfile(){
 
     try{
 
-        return JSON.parse(
-            localStorage.getItem(
-                "kronixAccounts"
-            ) || "{}"
+        return Object.assign(
+            emptyProfile(),
+            JSON.parse(
+                localStorage.getItem(
+                    "kronixGuest"
+                ) || "{}"
+            )
         );
 
     }catch{
 
-        return {};
+        return emptyProfile();
 
     }
 }
 
 
-function saveAccounts(accounts){
+function saveGuestProfile(profile){
 
     localStorage.setItem(
-        "kronixAccounts",
-        JSON.stringify(accounts)
+        "kronixGuest",
+        JSON.stringify(profile)
     );
+
+}
+
+
+/* Profilbild vor dem Speichern verkleinern,
+   damit es nicht riesig wird */
+
+function resizeImage(dataUrl, size, callback){
+
+    const img = new Image();
+
+    img.onload = function(){
+
+        const canvas =
+            document.createElement("canvas");
+
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx =
+            canvas.getContext("2d");
+
+        const min =
+            Math.min(img.width, img.height);
+
+        ctx.drawImage(
+            img,
+            (img.width - min) / 2,
+            (img.height - min) / 2,
+            min,
+            min,
+            0,
+            0,
+            size,
+            size
+        );
+
+        callback(
+            canvas.toDataURL("image/jpeg", 0.8)
+        );
+
+    };
+
+    img.src = dataUrl;
 
 }
 
 
 function updateAccountScreen(){
 
-    const accounts =
-        getAccounts();
+    const hint =
+        document.getElementById("accountHint");
 
-    if(
-        Object.keys(accounts).length === 0
-    ){
-
-        accountLoginMode = false;
+    if(!isOnline()){
 
         accountTitle.textContent =
-            "Konto erstellen";
+            "Offline-Modus";
 
         accountDescription.textContent =
-            "Erstelle dein Kronix-Konto.";
+            "Es ist noch kein Server eingetragen. Du kannst als Gast spielen – deine Punkte bleiben auf diesem Gerät.";
 
-        accountMainButton.textContent =
-            "Konto erstellen";
+        accountUsername.style.display = "none";
+        accountPassword.style.display = "none";
+        accountMainButton.style.display = "none";
+        accountSwitchButton.style.display = "none";
 
-        accountSwitchButton.textContent =
-            "Ich habe bereits ein Konto";
+        hint.textContent = "";
 
-    }else{
-
-        accountLoginMode = true;
-
-        accountTitle.textContent =
-            "Anmelden";
-
-        accountDescription.textContent =
-            "Melde dich mit deinem Benutzernamen und Passwort an.";
-
-        accountMainButton.textContent =
-            "Anmelden";
-
-        accountSwitchButton.textContent =
-            "Neues Konto erstellen";
+        return;
 
     }
+
+    accountUsername.style.display = "";
+    accountPassword.style.display = "";
+    accountMainButton.style.display = "";
+    accountSwitchButton.style.display = "";
+
+    accountLoginMode = true;
+
+    accountTitle.textContent =
+        "Anmelden";
+
+    accountDescription.textContent =
+        "Melde dich mit deinem Benutzernamen und Passwort an.";
+
+    accountMainButton.textContent =
+        "Anmelden";
+
+    accountSwitchButton.textContent =
+        "Neues Konto erstellen";
+
+    hint.textContent =
+        "Als Gast bleiben deine Punkte nur auf diesem Gerät.";
 
 }
 
@@ -755,8 +879,47 @@ function(){
 };
 
 
+/* Benutzername → interne E-Mail-Adresse für Supabase Auth.
+   Es wird KEINE echte E-Mail erhoben. */
+
+function usernameToEmail(username){
+
+    return username.toLowerCase() +
+        "@spieler.kronix-timer.app";
+
+}
+
+
+function authErrorText(error){
+
+    const message =
+        String((error && error.message) || "");
+
+    if(message.includes("already registered"))
+        return "Dieser Benutzername ist bereits vergeben.";
+
+    if(message.includes("Invalid login credentials"))
+        return "Falscher Benutzername oder falsches Passwort.";
+
+    if(message.includes("Password should be"))
+        return "Das Passwort muss mindestens 6 Zeichen haben.";
+
+    if(
+        message.includes("fetch") ||
+        message.includes("network") ||
+        message.includes("Failed")
+    )
+        return "Keine Verbindung zum Server. Prüfe dein Internet.";
+
+    return "Fehler: " + message;
+
+}
+
+
 accountMainButton.onclick =
-function(){
+async function(){
+
+    if(!isOnline())return;
 
     const username =
         accountUsername.value.trim();
@@ -764,113 +927,74 @@ function(){
     const password =
         accountPassword.value;
 
-    if(username.length < 3){
+    if(
+        !/^[a-zA-Z0-9_]{3,20}$/.test(username)
+    ){
 
         alert(
-            "Der Benutzername muss mindestens 3 Zeichen haben."
+            "Der Benutzername muss 3 bis 20 Zeichen haben und darf nur Buchstaben, Zahlen und _ enthalten."
         );
 
         return;
 
     }
 
-    if(password.length < 4){
+    if(password.length < 6){
 
         alert(
-            "Das Passwort muss mindestens 4 Zeichen haben."
+            "Das Passwort muss mindestens 6 Zeichen haben."
         );
 
         return;
 
     }
 
-    const accounts =
-        getAccounts();
+    accountMainButton.disabled = true;
 
-    /* LOGIN */
+    try{
 
-    if(accountLoginMode){
+        if(accountLoginMode){
 
-        if(!accounts[username]){
-
-            alert(
-                "Dieses Konto gibt es nicht."
+            await loginAccount(
+                username,
+                password
             );
 
-            return;
+        }else{
+
+            await createAccount(
+                username,
+                password
+            );
 
         }
 
-        if(
-            accounts[username].password !==
-            password
-        ){
-
-            alert(
-                "Falsches Passwort."
-            );
-
-            return;
-
-        }
-
-        currentUser =
-            username;
-
-        localStorage.setItem(
-            "kronixLoggedIn",
-            username
-        );
-
-        accountScreen.style.display =
-            "none";
-
-        updateRankingButton();
-
-        return;
-
-    }
-
-    /* KONTO ERSTELLEN */
-
-    if(accounts[username]){
+    }catch(error){
 
         alert(
-            "Dieser Benutzername ist bereits vergeben."
+            authErrorText(error)
         );
-
-        return;
 
     }
 
-    accounts[username] = {
+    accountMainButton.disabled = false;
 
-        password:password,
+};
 
-        image:"",
 
-        perfects:0,
+function startGuestMode(){
 
-        ranks:{
-            challenge:0,
-            challengeBlind:0,
-            oneSecond:0,
-            fiveSecond:0,
-            tenSecond:0
-        },
+    isGuest = true;
 
-        created:Date.now()
+    currentUser = null;
+    currentUserId = null;
 
-    };
-
-    saveAccounts(accounts);
-
-    currentUser =
-        username;
+    currentProfile =
+        getGuestProfile();
 
     localStorage.setItem(
-        "kronixLoggedIn",
-        username
+        "kronixGuestActive",
+        "1"
     );
 
     accountScreen.style.display =
@@ -878,73 +1002,224 @@ function(){
 
     updateRankingButton();
 
-};
+}
 
 
-function loadSavedAccount(){
+document.getElementById(
+    "guestButton"
+).onclick =
+startGuestMode;
 
-    const username =
-        localStorage.getItem(
-            "kronixLoggedIn"
+
+async function createAccount(username, password){
+
+    const { data, error } =
+        await supabaseClient.auth.signUp({
+
+            email:
+                usernameToEmail(username),
+
+            password:
+                password,
+
+            options:{
+                data:{ username: username }
+            }
+
+        });
+
+    if(error)throw error;
+
+    const { error: profileError } =
+        await supabaseClient
+            .from("profiles")
+            .insert({
+                id: data.user.id,
+                username: username
+            });
+
+    if(profileError){
+
+        if(
+            String(profileError.message)
+                .includes("duplicate")
+        ){
+
+            throw new Error(
+                "Dieser Benutzername ist bereits vergeben."
+            );
+
+        }
+
+        throw profileError;
+
+    }
+
+    finishLogin(
+        username,
+        data.user.id,
+        emptyProfile()
+    );
+
+}
+
+
+async function loginAccount(username, password){
+
+    const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+
+            email:
+                usernameToEmail(username),
+
+            password:
+                password
+
+        });
+
+    if(error)throw error;
+
+    await loadProfile(data.user);
+
+}
+
+
+async function loadProfile(user){
+
+    const { data, error } =
+        await supabaseClient
+            .from("profiles")
+            .select("username,image,perfects,ranks")
+            .eq("id", user.id)
+            .maybeSingle();
+
+    if(error)throw error;
+
+    if(data){
+
+        finishLogin(
+            data.username,
+            user.id,
+            {
+                image:
+                    data.image || "",
+
+                perfects:
+                    data.perfects || 0,
+
+                ranks:
+                    data.ranks ||
+                    emptyProfile().ranks
+            }
         );
 
-    const accounts =
-        getAccounts();
+        return;
+
+    }
+
+    /* Profil fehlt (z.B. abgebrochene Registrierung)
+       → still neu anlegen */
+
+    const username =
+        (
+            user.user_metadata &&
+            user.user_metadata.username
+        ) ||
+        "Spieler" + String(user.id).slice(0, 6);
+
+    await supabaseClient
+        .from("profiles")
+        .insert({
+            id: user.id,
+            username: username
+        });
+
+    finishLogin(
+        username,
+        user.id,
+        emptyProfile()
+    );
+
+}
+
+
+function finishLogin(username, userId, profile){
+
+    currentUser = username;
+    currentUserId = userId;
+    currentProfile = profile;
+    isGuest = false;
+
+    accountScreen.style.display =
+        "none";
+
+    updateRankingButton();
+
+}
+
+
+async function initAccount(){
+
+    updateAccountScreen();
+
+    /* War der Spieler zuletzt Gast?
+       Dann direkt als Gast weiterspielen. */
 
     if(
-        username &&
-        accounts[username]
+        localStorage.getItem(
+            "kronixGuestActive"
+        ) === "1"
     ){
 
-        currentUser =
-            username;
+        startGuestMode();
 
-        accountScreen.style.display =
-            "none";
+        return;
 
-    }else{
+    }
+
+    if(!isOnline()){
 
         accountScreen.style.display =
             "flex";
 
+        return;
+
     }
 
-    updateAccountScreen();
+    try{
+
+        const { data } =
+            await supabaseClient.auth.getSession();
+
+        if(
+            data &&
+            data.session
+        ){
+
+            await loadProfile(
+                data.session.user
+            );
+
+            return;
+
+        }
+
+    }catch(error){
+
+        /* Server nicht erreichbar →
+           Anmeldebildschirm zeigen */
+
+    }
+
+    accountScreen.style.display =
+        "flex";
 
 }
 
 
 function getCurrentAccount(){
 
-    const accounts =
-        getAccounts();
-
-    return currentUser
-        ? accounts[currentUser]
-        : null;
-
-}
-
-
-function updateAccount(callback){
-
-    const accounts =
-        getAccounts();
-
-    if(
-        !currentUser ||
-        !accounts[currentUser]
-    ){
-
-        return;
-
-    }
-
-    callback(
-        accounts[currentUser]
-    );
-
-    saveAccounts(accounts);
+    return currentProfile;
 
 }
 
@@ -974,38 +1249,64 @@ const panelContent =
     );
 
 
+function backToAccountScreen(){
+
+    currentUser = null;
+    currentUserId = null;
+    currentProfile = null;
+    isGuest = false;
+
+    localStorage.removeItem(
+        "kronixGuestActive"
+    );
+
+    panel.classList.remove(
+        "open"
+    );
+
+    accountScreen.style.display =
+        "flex";
+
+    updateAccountScreen();
+
+    updateRankingButton();
+
+}
+
+
 profileButton.onclick =
 function(){
 
-    if(!currentUser)return;
+    if(
+        !currentUser &&
+        !isGuest
+    )return;
 
     const account =
-        getCurrentAccount();
+        getCurrentAccount() ||
+        emptyProfile();
 
     panelTitle.textContent =
-        "👤 Mein Profil";
+        isGuest
+        ? "👤 Gast"
+        : "👤 Mein Profil";
 
-    panelContent.innerHTML = `
+    const accountButtons =
+        isGuest
 
-        <img
-            class="profileImage"
-            id="profilePreview"
-            src="${
-                account.image ||
-                'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2290%22 height=%2290%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23334155%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2250%22%3E👤%3C/text%3E%3C/svg%3E'
-            }">
-
-        <h3>
-            ${escapeHTML(currentUser)}
-        </h3>
-
-        <p>
-            ⭐ 100%-Erfolge:
-            <strong>
-                ${account.perfects || 0}
-            </strong>
+        ? `
+        <p class="smallText">
+            Als Gast bleiben deine Punkte nur auf diesem Gerät.
         </p>
 
+        <button
+            class="panelButton"
+            id="guestToLogin">
+            Konto erstellen / Anmelden
+        </button>
+        `
+
+        : `
         <input
             id="profileImageInput"
             type="file"
@@ -1024,6 +1325,40 @@ function(){
         </button>
 
         <button
+            class="panelButton danger"
+            id="deleteAccountButton">
+            Konto löschen
+        </button>
+        `;
+
+    panelContent.innerHTML = `
+
+        <img
+            class="profileImage"
+            id="profilePreview"
+            src="${
+                account.image ||
+                DEFAULT_AVATAR_BIG
+            }">
+
+        <h3>
+            ${escapeHTML(
+                isGuest
+                ? "Gast"
+                : currentUser
+            )}
+        </h3>
+
+        <p>
+            ⭐ 100%-Erfolge:
+            <strong>
+                ${account.perfects || 0}
+            </strong>
+        </p>
+
+        ${accountButtons}
+
+        <button
             class="panelButton secondary"
             id="closeProfile">
             Schließen
@@ -1032,6 +1367,31 @@ function(){
     `;
 
     panel.classList.add("open");
+
+
+    document.getElementById(
+        "closeProfile"
+    ).onclick =
+    function(){
+
+        panel.classList.remove(
+            "open"
+        );
+
+    };
+
+
+    if(isGuest){
+
+        document.getElementById(
+            "guestToLogin"
+        ).onclick =
+        backToAccountScreen;
+
+        return;
+
+    }
+
 
     let selectedImage =
         account.image || "";
@@ -1052,13 +1412,21 @@ function(){
         reader.onload =
         function(){
 
-            selectedImage =
-                reader.result;
+            resizeImage(
+                reader.result,
+                128,
+                function(small){
 
-            document.getElementById(
-                "profilePreview"
-            ).src =
-                selectedImage;
+                    selectedImage =
+                        small;
+
+                    document.getElementById(
+                        "profilePreview"
+                    ).src =
+                        selectedImage;
+
+                }
+            );
 
         };
 
@@ -1070,16 +1438,32 @@ function(){
     document.getElementById(
         "saveProfileImage"
     ).onclick =
-    function(){
+    async function(){
 
-        updateAccount(
-            function(account){
+        currentProfile.image =
+            selectedImage;
 
-                account.image =
-                    selectedImage;
+        if(isOnline()){
+
+            const { error } =
+                await supabaseClient
+                    .from("profiles")
+                    .update({
+                        image: selectedImage
+                    })
+                    .eq("id", currentUserId);
+
+            if(error){
+
+                alert(
+                    authErrorText(error)
+                );
+
+                return;
 
             }
-        );
+
+        }
 
         panel.classList.remove(
             "open"
@@ -1091,35 +1475,49 @@ function(){
     document.getElementById(
         "logoutButton"
     ).onclick =
-    function(){
+    async function(){
 
-        localStorage.removeItem(
-            "kronixLoggedIn"
-        );
+        if(isOnline()){
 
-        currentUser =
-            null;
+            await supabaseClient
+                .auth.signOut();
 
-        panel.classList.remove(
-            "open"
-        );
+        }
 
-        accountScreen.style.display =
-            "flex";
-
-        updateAccountScreen();
+        backToAccountScreen();
 
     };
 
 
     document.getElementById(
-        "closeProfile"
+        "deleteAccountButton"
     ).onclick =
-    function(){
+    async function(){
 
-        panel.classList.remove(
-            "open"
-        );
+        if(
+            !confirm(
+                "Willst du dein Konto wirklich löschen? Alle Punkte gehen für immer verloren."
+            )
+        )return;
+
+        const { error } =
+            await supabaseClient
+                .rpc("delete_account");
+
+        if(error){
+
+            alert(
+                authErrorText(error)
+            );
+
+            return;
+
+        }
+
+        await supabaseClient
+            .auth.signOut();
+
+        backToAccountScreen();
 
     };
 
@@ -1290,6 +1688,24 @@ function formatTime(milliseconds){
    GENAUIGKEIT
 ===================================================== */
 
+/*
+   WICHTIG:
+   Es zählt die Zeit, die der Spieler SIEHT.
+   Der Timer zeigt nur Hundertstel an (01.00),
+   also wird auch mit Hundertsteln gerechnet.
+   Sonst zeigt der Bildschirm 1.00, aber die
+   Genauigkeit ist trotzdem nicht 100 %.
+*/
+
+function shownTime(actual){
+
+    return Math.floor(
+        actual * 100 + 0.000001
+    ) / 100;
+
+}
+
+
 function calculateAccuracy(
     actual,
     target
@@ -1300,7 +1716,7 @@ function calculateAccuracy(
 
     const difference =
         Math.abs(
-            actual - target
+            shownTime(actual) - target
         );
 
     let accuracy =
@@ -1318,7 +1734,6 @@ function calculateAccuracy(
         );
 
     /*
-       WICHTIG:
        Immer auf 2 Nachkommastellen
        runden.
     */
@@ -1344,7 +1759,9 @@ function accuracyText(
 
 /*
    Ein echter Treffer:
-   maximal 0,005 Sekunden Unterschied.
+   Auf dem Bildschirm steht exakt die Zielzeit.
+   (Gleiche Regel wie bei der Genauigkeit –
+   Anzeige und Wertung passen immer zusammen.)
 */
 
 function isPerfectTarget(
@@ -1353,8 +1770,8 @@ function isPerfectTarget(
 ){
 
     return Math.abs(
-        actual - target
-    ) <= 0.005;
+        shownTime(actual) - target
+    ) < 0.005;
 
 }
 
@@ -1422,44 +1839,70 @@ function updateRankingButton(){
 }
 
 
-function addRankingPerfect(){
-
-    if(!rankingAllowed())
-        return;
-
-    updateAccount(
-        function(account){
-
-            if(!account.ranks)
-                account.ranks = {};
-
-            account.ranks[currentMode] =
-                Number(
-                    account.ranks[currentMode] || 0
-                ) + 1;
-
-        }
-    );
-
-    updateRankingButton();
-
-}
-
-
 function addPerfect(){
 
-    updateAccount(
-        function(account){
+    const profile =
+        getCurrentAccount();
 
-            account.perfects =
-                Number(
-                    account.perfects || 0
-                ) + 1;
+    if(!profile)return;
 
-        }
-    );
+    profile.perfects =
+        Number(
+            profile.perfects || 0
+        ) + 1;
 
-    addRankingPerfect();
+    if(rankingAllowed()){
+
+        if(!profile.ranks)
+            profile.ranks =
+                emptyProfile().ranks;
+
+        profile.ranks[currentMode] =
+            Number(
+                profile.ranks[currentMode] || 0
+            ) + 1;
+
+    }
+
+    if(isGuest){
+
+        saveGuestProfile(profile);
+
+    }else if(
+        isOnline() &&
+        rankingAllowed()
+    ){
+
+        /* Der Server zählt selbst mit und prüft,
+           ob der Treffer plausibel ist. Seine
+           Antwort ist die Wahrheit. */
+
+        supabaseClient
+            .rpc("add_perfect", {
+                mode: currentMode
+            })
+            .then(
+                function(result){
+
+                    if(
+                        result.data &&
+                        currentProfile &&
+                        !isGuest
+                    ){
+
+                        currentProfile.ranks =
+                            result.data;
+
+                    }
+
+                    updateRankingButton();
+
+                }
+            );
+
+    }
+
+    updateRankingButton();
 
 }
 
@@ -1479,64 +1922,25 @@ function(){
 };
 
 
-function showGlobalRanking(){
-
-    const accounts =
-        getAccounts();
-
-    const ranking =
-        Object.entries(accounts)
-
-        .map(
-            function(entry){
-
-                return {
-
-                    username:
-                        entry[0],
-
-                    account:
-                        entry[1],
-
-                    score:
-                        entry[1].ranks
-                        ?
-                        Number(
-                            entry[1].ranks[
-                                currentMode
-                            ] || 0
-                        )
-                        :
-                        0
-
-                };
-
-            }
-        )
-
-        .filter(
-            player =>
-                player.score > 0
-        )
-
-        .sort(
-            (a,b) =>
-                b.score -
-                a.score
-        );
+function rankingRowsHTML(players){
 
     let html = "";
 
-    ranking.forEach(
-        function(player,index){
+    players.forEach(
+        function(player, index){
 
             const image =
-                player.account.image ||
-                "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2238%22 height=%2238%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23334155%22/%3E%3Ctext x=%2250%22 y=%2260%22 text-anchor=%22middle%22 font-size=%2225%22%3E👤%3C/text%3E%3C/svg%3E";
+                player.image ||
+                DEFAULT_AVATAR_SMALL;
+
+            const highlight =
+                player.username === currentUser
+                ? ' style="outline:2px solid #168cff"'
+                : "";
 
             html += `
 
-                <div class="rankRow">
+                <div class="rankRow"${highlight}>
 
                     <div class="rankNumber">
                         ${index + 1}.
@@ -1563,6 +1967,13 @@ function showGlobalRanking(){
         }
     );
 
+    return html;
+
+}
+
+
+function renderRankingPanel(introText, html, extraText){
+
     panelTitle.textContent =
         "🏆 " +
         rankingNames[currentMode];
@@ -1570,13 +1981,20 @@ function showGlobalRanking(){
     panelContent.innerHTML = `
 
         <p class="smallText">
-            Rangliste der 100%-Erfolge
-            in diesem Modus
+            ${introText}
         </p>
 
         ${
             html ||
             "<p>Noch keine 100%-Erfolge.</p>"
+        }
+
+        ${
+            extraText
+            ? '<p class="smallText">' +
+              extraText +
+              "</p>"
+            : ""
         }
 
         <button
@@ -1601,6 +2019,124 @@ function showGlobalRanking(){
         );
 
     };
+
+}
+
+
+async function showGlobalRanking(){
+
+    /* OFFLINE: nur die eigenen Punkte
+       auf diesem Gerät */
+
+    if(!isOnline()){
+
+        const profile =
+            getCurrentAccount();
+
+        const score =
+            profile &&
+            profile.ranks
+            ? Number(
+                profile.ranks[currentMode] || 0
+            )
+            : 0;
+
+        renderRankingPanel(
+            "Rangliste auf diesem Gerät (offline)",
+            score > 0
+            ? rankingRowsHTML([{
+                username:
+                    currentUser || "Gast",
+                image:
+                    profile.image,
+                score:
+                    score
+            }])
+            : "",
+            ""
+        );
+
+        return;
+
+    }
+
+    /* ONLINE: globale Rangliste vom Server */
+
+    panelTitle.textContent =
+        "🏆 " +
+        rankingNames[currentMode];
+
+    panelContent.innerHTML =
+        "<p>Lädt...</p>";
+
+    panel.classList.add(
+        "open"
+    );
+
+    const { data, error } =
+        await supabaseClient
+            .from("profiles")
+            .select("username,image,ranks")
+            .limit(500);
+
+    if(error){
+
+        renderRankingPanel(
+            "🌐 Globale Rangliste",
+            "<p>Rangliste konnte nicht geladen werden. Prüfe dein Internet.</p>",
+            ""
+        );
+
+        return;
+
+    }
+
+    const players =
+        (data || [])
+
+        .map(
+            function(row){
+
+                return {
+
+                    username:
+                        row.username,
+
+                    image:
+                        row.image,
+
+                    score:
+                        row.ranks
+                        ? Number(
+                            row.ranks[currentMode] || 0
+                        )
+                        : 0
+
+                };
+
+            }
+        )
+
+        .filter(
+            player =>
+                player.score > 0
+        )
+
+        .sort(
+            (a, b) =>
+                b.score -
+                a.score
+        )
+
+        .slice(0, 50);
+
+    renderRankingPanel(
+        "🌐 Globale Rangliste – 100%-Erfolge in diesem Modus",
+        rankingRowsHTML(players),
+        isGuest
+        ? "Als Gast erscheinst du nicht in der Liste."
+        : ""
+    );
 
 }
 
@@ -3031,7 +3567,7 @@ window.addEventListener(
 
 applyDesign();
 
-loadSavedAccount();
+initAccount();
 
 updateRankingButton();
 
