@@ -1781,6 +1781,13 @@ function(){
             </div>
         </div>
 
+        <button
+            class="panelButton"
+            id="levelRankButton"
+            style="background:#0d4f88">
+            🌍 Level-Rangliste
+        </button>
+
         ${accountButtons}
 
         <button
@@ -1792,6 +1799,12 @@ function(){
     `;
 
     panel.classList.add("open");
+
+
+    document.getElementById(
+        "levelRankButton"
+    ).onclick =
+    showLevelRanking;
 
 
     document.getElementById(
@@ -5278,6 +5291,95 @@ function bumpStreak(current){
         );
 
     }
+}
+
+
+/* ---------- Globale Level-Rangliste ---------- */
+
+async function showLevelRanking(){
+
+    panelTitle.textContent = "🌍 Level-Rangliste";
+
+    if(!isOnline()){
+
+        panelContent.innerHTML =
+            '<p class="smallText">Die Level-Rangliste gibt es nur online.</p>' +
+            '<button class="panelButton secondary" id="closeLevelRank">Schließen</button>';
+
+        panel.classList.add("open");
+
+        document.getElementById("closeLevelRank").onclick =
+            function(){ panel.classList.remove("open"); };
+
+        return;
+
+    }
+
+    panelContent.innerHTML = "<p>Lädt ...</p>";
+    panel.classList.add("open");
+
+    const { data, error } =
+        await supabaseClient
+            .from("profiles")
+            .select("username,image,perfects")
+            .order("perfects", { ascending: false })
+            .limit(50);
+
+    if(error){
+
+        panelContent.innerHTML =
+            '<p>Rangliste konnte nicht geladen werden.</p>' +
+            '<button class="panelButton secondary" id="closeLevelRank">Schließen</button>';
+
+        document.getElementById("closeLevelRank").onclick =
+            function(){ panel.classList.remove("open"); };
+
+        return;
+
+    }
+
+    const spieler =
+        (data || []).filter(function(p){
+
+            return Number(p.perfects) > 0;
+
+        });
+
+    let html = "";
+
+    spieler.forEach(function(p, index){
+
+        const lvl = levelInfo(p.perfects).level;
+
+        const markieren =
+            p.username === currentUser
+            ? ' style="outline:2px solid #168cff"'
+            : "";
+
+        const krone =
+            index === 0 ? "👑 " :
+            index === 1 ? "🥈 " :
+            index === 2 ? "🥉 " : "";
+
+        html +=
+            '<div class="rankRow"' + markieren + '>' +
+            '<div class="rankNumber">' + krone + (index + 1) + '.</div>' +
+            '<img class="rankAvatar" src="' +
+            (p.image || DEFAULT_AVATAR_SMALL) + '">' +
+            '<div class="rankName">' + escapeHTML(p.username) + '</div>' +
+            '<div class="rankScore"><span class="levelChip">LVL ' +
+            lvl + '</span></div></div>';
+
+    });
+
+    panelContent.innerHTML =
+        '<p class="smallText">Die Spieler mit den meisten Leveln weltweit</p>' +
+        (html || "<p>Noch keine Spieler mit Leveln.</p>") +
+        '<button class="panelButton secondary" id="closeLevelRank">Schließen</button>';
+
+    document.getElementById("closeLevelRank").onclick =
+        function(){ panel.classList.remove("open"); };
+
 }
 
 
