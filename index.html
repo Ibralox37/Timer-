@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
 <title>Kronix Timer</title>
+<link rel="icon" type="image/png" href="kronix-favicon.png">
 
 <style>
 *{
@@ -256,6 +257,14 @@ input{
     text-shadow:0 0 15px #0088ff;
 }
 
+.accountLogoBild{
+    display:block;
+    width:80%;
+    max-width:300px;
+    margin:0 auto 5px;
+    filter:drop-shadow(0 0 14px rgba(0,136,255,.5));
+}
+
 .accountBox h2{
     margin:12px 0 25px;
 }
@@ -337,6 +346,14 @@ input{
         0 0 8px #00aaff,
         0 0 20px #0088ff,
         0 0 45px #0055ff;
+}
+
+.kronix-logo-bild{
+    display:block;
+    width:clamp(230px,45vw,430px);
+    filter:
+        drop-shadow(0 0 20px rgba(0,136,255,.55))
+        drop-shadow(0 0 45px rgba(0,85,255,.3));
 }
 
 .kronix-subtitle{
@@ -427,7 +444,11 @@ input{
 
     <div class="accountBox">
 
-        <div class="accountLogo">KRONIX</div>
+        <img
+            class="accountLogoBild"
+            src="kronix-logo-hell.png"
+            alt="KRONIX"
+            onerror="this.outerHTML='&lt;div class=&quot;accountLogo&quot;&gt;KRONIX&lt;/div&gt;'">
 
         <h2 id="accountTitle">
             Konto erstellen
@@ -598,13 +619,11 @@ input{
 
     <div id="kronix-dvd">
 
-        <div class="kronix-logo">
-            KRONIX
-        </div>
-
-        <div class="kronix-subtitle">
-            WE CREATE GAMES
-        </div>
+        <img
+            class="kronix-logo-bild"
+            src="kronix-logo-hell.png"
+            alt="KRONIX – WE CREATE GAMES"
+            onerror="this.outerHTML='&lt;div class=&quot;kronix-logo&quot;&gt;KRONIX&lt;/div&gt;&lt;div class=&quot;kronix-subtitle&quot;&gt;WE CREATE GAMES&lt;/div&gt;'">
 
     </div>
 
