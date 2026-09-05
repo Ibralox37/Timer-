@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
-<title>Kronix Timer</title>
+<title>Timer Challenge</title>
 <link rel="icon" type="image/png" href="kronix-favicon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#07101c">
 
 <style>
 *{
@@ -3662,6 +3665,27 @@ const kronixInterval =
         },
         35
     );
+
+
+/* =====================================================
+   APP-INSTALLATION (PWA)
+   Macht das Spiel auf Handys installierbar
+   und offline spielbar.
+===================================================== */
+
+if("serviceWorker" in navigator){
+
+    navigator.serviceWorker
+        .register("./sw.js")
+        .catch(function(){
+
+            /* Ohne Service Worker laeuft das Spiel
+               ganz normal weiter, nur ohne Offline-
+               Modus und Installation. */
+
+        });
+
+}
 
 </script>
 
