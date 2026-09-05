@@ -240,7 +240,8 @@ button{
     border-top:1px solid rgba(255,255,255,.2);
 }
 
-#neonButton{
+#neonButton,
+#soundButton{
     width:100%;
     border:0;
     border-radius:11px;
@@ -249,6 +250,7 @@ button{
     color:white;
     font-size:15px;
     font-weight:bold;
+    font-family:inherit;
 }
 
 #panel{
@@ -334,6 +336,48 @@ input{
     height:100%;
     pointer-events:none;
     z-index:999;
+}
+
+/* Bildschirm-Blitz (GO, Fehler, Perfekt) */
+
+#flash{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:0;
+    z-index:40;
+    transition:opacity .35s ease-out;
+}
+
+#flash.on{
+    opacity:.28;
+    transition:opacity .05s;
+}
+
+/* Herausfordern-Knopf */
+
+#shareButton{
+    position:fixed;
+    bottom:18px;
+    left:18px;
+    z-index:50;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;
+    padding:12px 16px;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    font-family:inherit;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+    transition:filter .15s,transform .1s;
+}
+
+#shareButton:hover{
+    filter:brightness(1.18);
+}
+
+#shareButton:active{
+    transform:scale(.96);
 }
 
 /* =========================
@@ -719,6 +763,10 @@ input{
             ✨ Neon: AUS
         </button>
 
+        <button id="soundButton" style="margin-top:6px">
+            🔊 Sound: EIN
+        </button>
+
     </div>
 
 </div>
@@ -732,6 +780,12 @@ input{
 </div>
 
 <canvas id="confettiCanvas"></canvas>
+
+<div id="flash"></div>
+
+<button id="shareButton">
+    📤 Herausfordern
+</button>
 
 <!-- =========================
      KRONIX LOADING
@@ -1690,6 +1744,109 @@ function escapeHTML(text){
             '"',
             "&quot;"
         );
+
+}
+
+
+/* =====================================================
+   SOUND (Web Audio, keine Dateien noetig)
+===================================================== */
+
+let soundEnabled =
+    localStorage.getItem("kronixSound") !== "0";
+
+let audioContext =
+    null;
+
+function playTone(frequency, duration, type, volume, delay){
+
+    if(!soundEnabled)return;
+
+    try{
+
+        if(!audioContext){
+
+            audioContext =
+                new (window.AudioContext ||
+                     window.webkitAudioContext)();
+
+        }
+
+        const t0 =
+            audioContext.currentTime +
+            (delay || 0);
+
+        const osc =
+            audioContext.createOscillator();
+
+        const gain =
+            audioContext.createGain();
+
+        osc.type =
+            type || "sine";
+
+        osc.frequency.value =
+            frequency;
+
+        gain.gain.setValueAtTime(
+            volume || 0.12,
+            t0
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            t0 + duration
+        );
+
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+
+        osc.start(t0);
+        osc.stop(t0 + duration);
+
+    }catch(error){
+
+        /* Ohne Sound geht das Spiel normal weiter */
+
+    }
+}
+
+function soundStart(){ playTone(440, 0.08, "sine", 0.08); }
+function soundStop(){ playTone(330, 0.1, "sine", 0.08); }
+function soundGo(){ playTone(880, 0.12, "square", 0.1); }
+function soundFail(){ playTone(140, 0.25, "sawtooth", 0.12); }
+
+function soundPerfect(){
+
+    playTone(660, 0.12, "sine", 0.12);
+    playTone(880, 0.12, "sine", 0.12, 0.09);
+    playTone(1320, 0.2, "sine", 0.12, 0.18);
+
+}
+
+
+/* =====================================================
+   BILDSCHIRM-BLITZ
+===================================================== */
+
+const flashElement =
+    document.getElementById("flash");
+
+function flashScreen(color){
+
+    flashElement.style.background =
+        color;
+
+    flashElement.classList.add("on");
+
+    setTimeout(
+        function(){
+
+            flashElement.classList.remove("on");
+
+        },
+        120
+    );
 
 }
 
@@ -2782,6 +2939,8 @@ function handleGameTap(){
         running =
             true;
 
+        soundStart();
+
         timer.classList.add(
             "running"
         );
@@ -2889,6 +3048,8 @@ function handleGameTap(){
 
     running =
         false;
+
+    soundStop();
 
     timer.classList.remove(
         "running"
@@ -3059,6 +3220,10 @@ function finishSurvival(actual){
         const runden =
             survivalRound;
 
+        soundFail();
+
+        flashScreen("#dc2626");
+
         submitBest(
             "survival",
             runden
@@ -3161,6 +3326,10 @@ function handleReactionTap(){
                     info.textContent =
                         "JETZT TIPPEN!";
 
+                    soundGo();
+
+                    flashScreen("#22c55e");
+
                 },
                 delay
             );
@@ -3185,6 +3354,10 @@ function handleReactionTap(){
 
         info.textContent =
             "Zu früh! Tippe für einen neuen Versuch";
+
+        soundFail();
+
+        flashScreen("#dc2626");
 
         return;
 
@@ -3266,6 +3439,10 @@ function handleReactionTap(){
    (fuer Survival-Volltreffer und Blitzreflexe) */
 
 function celebratePerfectAnimation(){
+
+    soundPerfect();
+
+    flashScreen("#2e9bff");
 
     timer.classList.remove(
         "perfect"
@@ -3378,17 +3555,7 @@ function celebratePerfect(){
 
     addPerfect();
 
-    timer.classList.remove(
-        "perfect"
-    );
-
-    void timer.offsetWidth;
-
-    timer.classList.add(
-        "perfect"
-    );
-
-    startConfetti();
+    celebratePerfectAnimation();
 
 }
 
@@ -4128,6 +4295,11 @@ function applyDesign(){
     rankingButton.style.background =
         d.button;
 
+    document.getElementById(
+        "shareButton"
+    ).style.background =
+        d.button;
+
     info.style.color =
         d.info;
 
@@ -4214,6 +4386,148 @@ neonButton.addEventListener(
             "✨ Neon: AUS";
 
         applyDesign();
+
+    }
+);
+
+
+/* =====================================================
+   SOUND AN/AUS
+===================================================== */
+
+const soundButton =
+    document.getElementById(
+        "soundButton"
+    );
+
+soundButton.textContent =
+    soundEnabled
+    ? "🔊 Sound: EIN"
+    : "🔇 Sound: AUS";
+
+soundButton.addEventListener(
+    "pointerup",
+    function(e){
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+        soundEnabled =
+            !soundEnabled;
+
+        localStorage.setItem(
+            "kronixSound",
+            soundEnabled ? "1" : "0"
+        );
+
+        soundButton.textContent =
+            soundEnabled
+            ? "🔊 Sound: EIN"
+            : "🔇 Sound: AUS";
+
+        if(soundEnabled)
+            playTone(660, 0.1, "sine", 0.1);
+
+    }
+);
+
+
+/* =====================================================
+   HERAUSFORDERN (TEILEN)
+   Der wichtigste Knopf, um beruehmt zu werden:
+   Spieler laden Spieler ein.
+===================================================== */
+
+const shareButton =
+    document.getElementById(
+        "shareButton"
+    );
+
+function buildShareText(){
+
+    const account =
+        getCurrentAccount();
+
+    const ranks =
+        account && account.ranks
+        ? account.ranks
+        : emptyProfile().ranks;
+
+    if(
+        currentMode === "reaction" &&
+        Number(ranks.reaction) > 0
+    ){
+
+        return "⚡ Meine Reaktionszeit in Timer Challenge: " +
+            ranks.reaction +
+            " ms – schlag mich!";
+
+    }
+
+    if(
+        currentMode === "survival" &&
+        Number(ranks.survival) > 0
+    ){
+
+        return "🔥 Ich habe " +
+            ranks.survival +
+            " Survival-Runden in Timer Challenge überlebt – schaffst du mehr?";
+
+    }
+
+    const score =
+        Number(ranks[currentMode] || 0);
+
+    if(
+        rankingAllowed() &&
+        score > 0
+    ){
+
+        return "🏆 " +
+            score +
+            " perfekte Treffer in Timer Challenge – kannst du das toppen?";
+
+    }
+
+    return "⏱️ Timer Challenge – stoppe den Timer auf die exakte Zeit. Trau dich!";
+
+}
+
+shareButton.addEventListener(
+    "pointerup",
+    function(e){
+
+        e.preventDefault();
+
+        e.stopPropagation();
+
+        const text =
+            buildShareText();
+
+        const url =
+            "https://ibralox37.github.io/Timer-/";
+
+        if(navigator.share){
+
+            navigator.share({
+                title: "Timer Challenge",
+                text: text,
+                url: url
+            }).catch(function(){});
+
+        }else if(navigator.clipboard){
+
+            navigator.clipboard
+                .writeText(text + " " + url)
+                .then(function(){
+
+                    info.textContent =
+                        "📋 Herausforderung kopiert – schick sie deinen Freunden!";
+
+                });
+
+        }
 
     }
 );
@@ -4377,7 +4691,7 @@ const kronixInterval =
                 kronixProgress;
 
         },
-        35
+        10
     );
 
 
