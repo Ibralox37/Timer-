@@ -2881,13 +2881,21 @@ gameArea.addEventListener(
 
         event.preventDefault();
 
-        handleGameTap();
+        /* Zeitstempel des ECHTEN Klicks mitgeben —
+           genauer als die Zeit im Programm */
+
+        handleGameTap(
+            event.timeStamp
+        );
 
     }
 );
 
 
-function handleGameTap(){
+function handleGameTap(eventTime){
+
+    const tapTime =
+        eventTime || performance.now();
 
     /*
        Reaktionstest hat eine
@@ -2896,7 +2904,7 @@ function handleGameTap(){
 
     if(currentMode === "reaction"){
 
-        handleReactionTap();
+        handleReactionTap(tapTime);
 
         return;
 
@@ -2925,7 +2933,7 @@ function handleGameTap(){
            in ALLEN Modi.
         */
 
-        startRun();
+        startRun(tapTime);
 
         return;
 
@@ -2938,17 +2946,17 @@ function handleGameTap(){
 
     if(!running){
 
-        startRun();
+        startRun(tapTime);
 
         return;
 
     }
 
 
-    function startRun(){
+    function startRun(startAt){
 
         startTime =
-            performance.now();
+            startAt || performance.now();
 
         elapsedTime =
             0;
@@ -3078,8 +3086,11 @@ function handleGameTap(){
         animationFrame
     );
 
+    /* Zeit vom echten Klick-Zeitstempel —
+       nicht von der Verarbeitung */
+
     elapsedTime =
-        performance.now() -
+        tapTime -
         startTime;
 
     const actual =
@@ -3307,7 +3318,10 @@ function resetReaction(){
 }
 
 
-function handleReactionTap(){
+function handleReactionTap(eventTime){
+
+    const tapTime =
+        eventTime || performance.now();
 
     /* Start: scharf stellen */
 
@@ -3388,7 +3402,7 @@ function handleReactionTap(){
 
         const ms =
             Math.round(
-                performance.now() -
+                tapTime -
                 reactionStart
             );
 
