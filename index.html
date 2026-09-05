@@ -2921,16 +2921,11 @@ function handleGameTap(){
 
         /*
            Direkt wieder loslaufen —
-           kein extra Tipp noetig.
-           Nur Challenge Blind zeigt erst
-           die Zielzeit zum Merken.
+           kein extra Tipp noetig,
+           in ALLEN Modi.
         */
 
-        if(currentMode !== "challengeBlind"){
-
-            startRun();
-
-        }
+        startRun();
 
         return;
 
@@ -3009,7 +3004,9 @@ function handleGameTap(){
         ){
 
             info.textContent =
-                "🎯🕶️ Stoppe nach Gefühl";
+                "🎯🕶️ Stoppe bei " +
+                challengeTarget.toFixed(2) +
+                " – Timer versteckt";
 
         }
 
