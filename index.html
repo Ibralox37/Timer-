@@ -2919,6 +2919,19 @@ function handleGameTap(){
 
         }
 
+        /*
+           Direkt wieder loslaufen —
+           kein extra Tipp noetig.
+           Nur Challenge Blind zeigt erst
+           die Zielzeit zum Merken.
+        */
+
+        if(currentMode !== "challengeBlind"){
+
+            startRun();
+
+        }
+
         return;
 
     }
@@ -2929,6 +2942,15 @@ function handleGameTap(){
     */
 
     if(!running){
+
+        startRun();
+
+        return;
+
+    }
+
+
+    function startRun(){
 
         startTime =
             performance.now();
