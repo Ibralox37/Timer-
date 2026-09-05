@@ -354,12 +354,12 @@ input{
     transition:opacity .05s;
 }
 
-/* Herausfordern-Knopf */
+/* Herausfordern- und Freunde-Knopf */
 
-#shareButton{
+#shareButton,
+#friendsButton{
     position:fixed;
     bottom:18px;
-    left:18px;
     z-index:50;
     border:1px solid rgba(255,255,255,.12);
     border-radius:14px;
@@ -372,13 +372,70 @@ input{
     transition:filter .15s,transform .1s;
 }
 
-#shareButton:hover{
+#shareButton{ left:18px; }
+#friendsButton{ right:18px; }
+
+#shareButton:hover,
+#friendsButton:hover{
     filter:brightness(1.18);
 }
 
-#shareButton:active{
+#shareButton:active,
+#friendsButton:active{
     transform:scale(.96);
 }
+
+/* Badge fuer offene Anfragen/Einladungen */
+
+#friendsBadge{
+    display:none;
+    position:absolute;
+    top:-8px;
+    right:-8px;
+    min-width:20px;
+    height:20px;
+    line-height:20px;
+    padding:0 5px;
+    border-radius:10px;
+    background:#dc2626;
+    color:white;
+    font-size:12px;
+    text-align:center;
+}
+
+/* Listen in den Freunde-Dialogen */
+
+.friendRow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 10px;
+    margin:5px 0;
+    border-radius:10px;
+    background:rgba(255,255,255,.06);
+}
+
+.friendRow .name{
+    flex:1;
+    text-align:left;
+    font-weight:600;
+}
+
+.miniButton{
+    border:0;
+    border-radius:8px;
+    padding:7px 11px;
+    font-size:13px;
+    font-weight:600;
+    font-family:inherit;
+    color:white;
+    background:#2563eb;
+    cursor:pointer;
+}
+
+.miniButton.green{ background:#16a34a; }
+.miniButton.red{ background:#dc2626; }
+.miniButton.grey{ background:#475569; }
 
 /* =========================
    KONTO
@@ -785,6 +842,11 @@ input{
 
 <button id="shareButton">
     📤 Herausfordern
+</button>
+
+<button id="friendsButton" style="display:none">
+    👥 Freunde
+    <span id="friendsBadge">0</span>
 </button>
 
 <!-- =========================
@@ -1352,6 +1414,8 @@ function finishLogin(username, userId, profile){
 
     updateRankingButton();
 
+    enableSocial();
+
 }
 
 
@@ -1456,6 +1520,8 @@ function backToAccountScreen(){
     localStorage.removeItem(
         "kronixGuestActive"
     );
+
+    disableSocial();
 
     panel.classList.remove(
         "open"
@@ -2921,6 +2987,16 @@ function handleGameTap(eventTime){
 
             createSurvivalTarget();
 
+        }else if(currentMode === "battle"){
+
+            /* gleiche Zielzeit jede Runde,
+               kein neues Ziel wuerfeln */
+
+            resultVisible = false;
+
+            challengeTarget =
+                Number(activeBattle.target);
+
         }else{
 
             createNewTarget();
@@ -3050,6 +3126,22 @@ function handleGameTap(eventTime){
 
         if(
             currentMode ===
+            "battle"
+        ){
+
+            info.textContent =
+                "⚔️ Runde " +
+                (battleRound + 1) +
+                "/" + activeBattle.rounds +
+                " – Ziel " +
+                challengeTarget.toFixed(2) +
+                " s";
+
+        }
+
+
+        if(
+            currentMode ===
             "friends"
         ){
 
@@ -3127,6 +3219,20 @@ function handleGameTap(eventTime){
     ){
 
         finishTarget(
+            actual
+        );
+
+        return;
+
+    }
+
+
+    if(
+        currentMode ===
+        "battle"
+    ){
+
+        finishBattleRound(
             actual
         );
 
@@ -4740,6 +4846,773 @@ const kronixInterval =
         },
         10
     );
+
+
+/* =====================================================
+   FREUNDE & ONLINE-BATTLE
+===================================================== */
+
+const friendsButton =
+    document.getElementById("friendsButton");
+
+const friendsBadge =
+    document.getElementById("friendsBadge");
+
+let socialChannel = null;
+let activeBattle = null;      /* laufendes Battle */
+let battleRole = null;        /* "host" oder "guest" */
+let battleRound = 0;
+let battleAccuracySum = 0;
+
+function soundInvite(){
+    playTone(700, 0.12, "sine", 0.12);
+    playTone(1050, 0.14, "sine", 0.12, 0.12);
+}
+
+function soundWin(){
+    playTone(660, 0.13, "sine", 0.13);
+    playTone(880, 0.13, "sine", 0.13, 0.11);
+    playTone(1320, 0.28, "sine", 0.13, 0.22);
+}
+
+function soundLose(){
+    playTone(400, 0.2, "sawtooth", 0.12);
+    playTone(250, 0.35, "sawtooth", 0.12, 0.15);
+}
+
+
+function enableSocial(){
+
+    if(!isOnline() || isGuest || !currentUserId){
+
+        friendsButton.style.display = "none";
+
+        return;
+
+    }
+
+    friendsButton.style.display = "block";
+
+    /* Realtime: Einladungen und Battle-Updates */
+
+    if(socialChannel){
+
+        supabaseClient.removeChannel(socialChannel);
+
+    }
+
+    socialChannel =
+        supabaseClient
+        .channel("social-" + currentUserId)
+        .on("postgres_changes",
+            { event: "INSERT", schema: "public", table: "battles",
+              filter: "guest_id=eq." + currentUserId },
+            function(payload){ onBattleInvite(payload.new); })
+        .on("postgres_changes",
+            { event: "UPDATE", schema: "public", table: "battles" },
+            function(payload){ onBattleUpdate(payload.new); })
+        .on("postgres_changes",
+            { event: "INSERT", schema: "public", table: "friendships",
+              filter: "receiver_id=eq." + currentUserId },
+            function(){ refreshBadge(); })
+        .subscribe();
+
+    refreshBadge();
+
+}
+
+
+function disableSocial(){
+
+    friendsButton.style.display = "none";
+
+    if(socialChannel){
+
+        supabaseClient.removeChannel(socialChannel);
+        socialChannel = null;
+
+    }
+
+}
+
+
+/* Anzahl offener Anfragen + Einladungen fuer das Badge */
+
+async function refreshBadge(){
+
+    if(!isOnline() || isGuest || !currentUserId)return;
+
+    const anfragen =
+        await supabaseClient
+            .from("friendships")
+            .select("id", { count: "exact", head: true })
+            .eq("receiver_id", currentUserId)
+            .eq("status", "pending");
+
+    const einladungen =
+        await supabaseClient
+            .from("battles")
+            .select("id", { count: "exact", head: true })
+            .eq("guest_id", currentUserId)
+            .eq("status", "invited");
+
+    const summe =
+        (anfragen.count || 0) +
+        (einladungen.count || 0);
+
+    if(summe > 0){
+
+        friendsBadge.textContent = summe;
+        friendsBadge.style.display = "block";
+
+    }else{
+
+        friendsBadge.style.display = "none";
+
+    }
+
+}
+
+
+/* ---------- Freunde-Panel ---------- */
+
+friendsButton.onclick =
+function(){
+
+    openFriendsPanel();
+
+};
+
+
+async function openFriendsPanel(){
+
+    panelTitle.textContent = "👥 Freunde";
+
+    panelContent.innerHTML = `
+        <input id="friendSearch" placeholder="Benutzername suchen ...">
+        <div id="searchResults"></div>
+        <h3 style="margin:14px 0 6px">📨 Anfragen</h3>
+        <div id="requestList"><p class="smallText">Lädt ...</p></div>
+        <h3 style="margin:14px 0 6px">🎮 Deine Freunde</h3>
+        <div id="friendList"><p class="smallText">Lädt ...</p></div>
+        <button class="panelButton secondary" id="closeFriends">Schließen</button>
+    `;
+
+    panel.classList.add("open");
+
+    document.getElementById("closeFriends").onclick =
+        function(){ panel.classList.remove("open"); };
+
+    const suchfeld =
+        document.getElementById("friendSearch");
+
+    let suchTimer = null;
+
+    suchfeld.oninput =
+    function(){
+
+        clearTimeout(suchTimer);
+
+        suchTimer =
+            setTimeout(function(){ doSearch(suchfeld.value.trim()); }, 300);
+
+    };
+
+    loadRequests();
+    loadFriends();
+
+}
+
+
+async function doSearch(begriff){
+
+    const box =
+        document.getElementById("searchResults");
+
+    if(!box)return;
+
+    if(begriff.length < 2){
+
+        box.innerHTML = "";
+
+        return;
+
+    }
+
+    const { data } =
+        await supabaseClient
+            .from("profiles")
+            .select("id,username,image")
+            .ilike("username", begriff + "%")
+            .neq("id", currentUserId)
+            .limit(8);
+
+    if(!data || data.length === 0){
+
+        box.innerHTML =
+            '<p class="smallText">Niemand gefunden.</p>';
+
+        return;
+
+    }
+
+    box.innerHTML =
+        data.map(function(u){
+
+            return '<div class="friendRow">' +
+                '<img class="rankAvatar" src="' +
+                (u.image || DEFAULT_AVATAR_SMALL) + '">' +
+                '<div class="name">' + escapeHTML(u.username) + '</div>' +
+                '<button class="miniButton" data-add="' + u.id +
+                '" data-name="' + escapeHTML(u.username) +
+                '">+ Freund</button></div>';
+
+        }).join("");
+
+    box.querySelectorAll("[data-add]").forEach(function(btn){
+
+        btn.onclick =
+        async function(){
+
+            btn.disabled = true;
+            btn.textContent = "...";
+
+            const { error } =
+                await supabaseClient
+                    .from("friendships")
+                    .insert({
+                        sender_id: currentUserId,
+                        receiver_id: btn.dataset.add
+                    });
+
+            btn.textContent =
+                error ? "schon angefragt" : "✓ gesendet";
+
+        };
+
+    });
+
+}
+
+
+async function loadRequests(){
+
+    const box =
+        document.getElementById("requestList");
+
+    if(!box)return;
+
+    const { data } =
+        await supabaseClient
+            .from("friendships")
+            .select("id,sender_id,status")
+            .eq("receiver_id", currentUserId)
+            .eq("status", "pending");
+
+    if(!data || data.length === 0){
+
+        box.innerHTML =
+            '<p class="smallText">Keine offenen Anfragen.</p>';
+
+        return;
+
+    }
+
+    /* Namen der Absender holen */
+
+    const ids = data.map(function(r){ return r.sender_id; });
+
+    const { data: leute } =
+        await supabaseClient
+            .from("profiles")
+            .select("id,username,image")
+            .in("id", ids);
+
+    const nameVon = {};
+    (leute || []).forEach(function(p){ nameVon[p.id] = p; });
+
+    box.innerHTML =
+        data.map(function(r){
+
+            const p = nameVon[r.sender_id] || { username: "?" };
+
+            return '<div class="friendRow">' +
+                '<img class="rankAvatar" src="' +
+                ((p.image) || DEFAULT_AVATAR_SMALL) + '">' +
+                '<div class="name">' + escapeHTML(p.username) + '</div>' +
+                '<button class="miniButton green" data-accept="' + r.id + '">Annehmen</button>' +
+                '<button class="miniButton red" data-decline="' + r.id + '">✕</button></div>';
+
+        }).join("");
+
+    box.querySelectorAll("[data-accept]").forEach(function(btn){
+
+        btn.onclick =
+        async function(){
+
+            await supabaseClient
+                .from("friendships")
+                .update({ status: "accepted" })
+                .eq("id", btn.dataset.accept);
+
+            loadRequests();
+            loadFriends();
+            refreshBadge();
+
+        };
+
+    });
+
+    box.querySelectorAll("[data-decline]").forEach(function(btn){
+
+        btn.onclick =
+        async function(){
+
+            await supabaseClient
+                .from("friendships")
+                .delete()
+                .eq("id", btn.dataset.decline);
+
+            loadRequests();
+            refreshBadge();
+
+        };
+
+    });
+
+}
+
+
+async function loadFriends(){
+
+    const box =
+        document.getElementById("friendList");
+
+    if(!box)return;
+
+    const { data } =
+        await supabaseClient
+            .from("friendships")
+            .select("sender_id,receiver_id,status")
+            .eq("status", "accepted");
+
+    if(!data || data.length === 0){
+
+        box.innerHTML =
+            '<p class="smallText">Noch keine Freunde. Suche oben nach einem Benutzernamen!</p>';
+
+        return;
+
+    }
+
+    const freundIds =
+        data.map(function(f){
+
+            return f.sender_id === currentUserId
+                ? f.receiver_id
+                : f.sender_id;
+
+        });
+
+    const { data: leute } =
+        await supabaseClient
+            .from("profiles")
+            .select("id,username,image")
+            .in("id", freundIds);
+
+    box.innerHTML =
+        (leute || []).map(function(p){
+
+            return '<div class="friendRow">' +
+                '<img class="rankAvatar" src="' +
+                (p.image || DEFAULT_AVATAR_SMALL) + '">' +
+                '<div class="name">' + escapeHTML(p.username) + '</div>' +
+                '<button class="miniButton" data-battle="' + p.id +
+                '" data-name="' + escapeHTML(p.username) +
+                '">⚔️ Battle</button></div>';
+
+        }).join("");
+
+    box.querySelectorAll("[data-battle]").forEach(function(btn){
+
+        btn.onclick =
+        function(){
+
+            openBattleSetup(btn.dataset.battle, btn.dataset.name);
+
+        };
+
+    });
+
+}
+
+
+/* ---------- Battle einladen ---------- */
+
+function openBattleSetup(freundId, freundName){
+
+    panelTitle.textContent = "⚔️ Battle gegen " + freundName;
+
+    panelContent.innerHTML = `
+        <p>Runden:</p>
+        <input id="battleRounds" type="number" min="1" max="20" value="5">
+        <p>Zielzeit in Sekunden:</p>
+        <input id="battleTarget" type="number" min="0.1" max="30" step="0.01" value="1.00">
+        <button class="panelButton" id="sendBattle">Einladung senden</button>
+        <button class="panelButton secondary" id="backFriends">Zurück</button>
+    `;
+
+    document.getElementById("backFriends").onclick = openFriendsPanel;
+
+    document.getElementById("sendBattle").onclick =
+    async function(){
+
+        const runden =
+            Math.max(1, Math.min(20,
+                parseInt(document.getElementById("battleRounds").value) || 5));
+
+        const ziel =
+            Math.max(0.1, Math.min(30,
+                parseFloat(document.getElementById("battleTarget").value) || 1));
+
+        this.disabled = true;
+        this.textContent = "sende ...";
+
+        const { error } =
+            await supabaseClient
+                .from("battles")
+                .insert({
+                    host_id: currentUserId,
+                    guest_id: freundId,
+                    host_name: currentUser,
+                    guest_name: freundName,
+                    rounds: runden,
+                    target: ziel
+                });
+
+        if(error){
+
+            this.textContent = "Fehler – nochmal";
+            this.disabled = false;
+
+            return;
+
+        }
+
+        panelTitle.textContent = "⚔️ Einladung gesendet";
+        panelContent.innerHTML =
+            '<p>Warte, bis ' + escapeHTML(freundName) +
+            ' die Herausforderung annimmt ...</p>' +
+            '<button class="panelButton secondary" id="closeWait">Schließen</button>';
+
+        document.getElementById("closeWait").onclick =
+            function(){ panel.classList.remove("open"); };
+
+    };
+
+}
+
+
+/* ---------- Einladung empfangen ---------- */
+
+function onBattleInvite(battle){
+
+    soundInvite();
+    refreshBadge();
+
+    panelTitle.textContent = "⚔️ Herausforderung!";
+
+    panelContent.innerHTML =
+        '<p><strong>' + escapeHTML(battle.host_name) +
+        '</strong> fordert dich heraus:</p>' +
+        '<p>🎯 ' + battle.rounds + ' Runden – Ziel ' +
+        Number(battle.target).toFixed(2) + ' s</p>' +
+        '<button class="panelButton" id="acceptBattle">Annehmen ⚔️</button>' +
+        '<button class="panelButton secondary" id="declineBattle">Ablehnen</button>';
+
+    panel.classList.add("open");
+
+    document.getElementById("acceptBattle").onclick =
+    async function(){
+
+        await supabaseClient
+            .from("battles")
+            .update({ status: "active" })
+            .eq("id", battle.id);
+
+        refreshBadge();
+        startBattle(battle, "guest");
+
+    };
+
+    document.getElementById("declineBattle").onclick =
+    async function(){
+
+        await supabaseClient
+            .from("battles")
+            .update({ status: "declined" })
+            .eq("id", battle.id);
+
+        refreshBadge();
+        panel.classList.remove("open");
+
+    };
+
+}
+
+
+/* ---------- Battle-Ablauf ---------- */
+
+function startBattle(battle, rolle){
+
+    activeBattle = battle;
+    battleRole = rolle;
+    battleRound = 0;
+    battleAccuracySum = 0;
+
+    panel.classList.remove("open");
+    modeMenu.classList.remove("open");
+
+    running = false;
+    clearTimeout(resultTimer);
+    resultVisible = false;
+    timer.classList.remove("running");
+
+    currentMode = "battle";
+    challengeTarget = Number(battle.target);
+
+    rankingButton.style.display = "none";
+
+    modeButton.textContent = "⚔️ Battle ▾";
+
+    timer.textContent = challengeTarget.toFixed(2);
+    info.textContent =
+        "⚔️ Battle vs " +
+        (rolle === "host" ? battle.guest_name : battle.host_name) +
+        " – Runde 1/" + battle.rounds + " – Ziel " +
+        challengeTarget.toFixed(2) + " s";
+
+}
+
+
+function finishBattleRound(actual){
+
+    const accuracy =
+        calculateAccuracy(actual, challengeTarget);
+
+    battleAccuracySum += accuracy;
+    battleRound++;
+
+    timer.textContent = formatTime(elapsedTime);
+    resultVisible = true;
+
+    if(isPerfectTarget(actual, challengeTarget)){
+
+        celebratePerfectAnimation();
+
+    }
+
+    if(battleRound < activeBattle.rounds){
+
+        info.textContent =
+            "Runde " + battleRound + ": " +
+            accuracyText(accuracy) +
+            " – tippe für Runde " + (battleRound + 1) +
+            "/" + activeBattle.rounds;
+
+    }else{
+
+        const schnitt =
+            Math.round(
+                (battleAccuracySum / activeBattle.rounds) * 100
+            ) / 100;
+
+        info.textContent =
+            "✅ Fertig! Dein Schnitt: " + accuracyText(schnitt) +
+            " – warte auf Gegner ...";
+
+        submitBattleScore(schnitt);
+
+    }
+
+}
+
+
+async function submitBattleScore(schnitt){
+
+    const feld =
+        battleRole === "host" ? "host_score" : "guest_score";
+
+    /* Punkte nur ueber die geschuetzte Funktion —
+       niemand kann den Score des Gegners aendern */
+
+    await supabaseClient
+        .rpc("submit_battle_score", {
+            battle_id: activeBattle.id,
+            score: schnitt
+        });
+
+    /* eigenen Wert lokal merken und pruefen ob beide fertig */
+
+    activeBattle[feld] = schnitt;
+    checkBattleFinished();
+
+}
+
+
+function onBattleUpdate(battle){
+
+    /* Gegner hat Battle angenommen (Host wartet) */
+
+    if(
+        activeBattle == null &&
+        battle.status === "active" &&
+        battle.host_id === currentUserId
+    ){
+
+        startBattle(battle, "host");
+
+        return;
+
+    }
+
+    if(
+        activeBattle == null &&
+        battle.status === "declined" &&
+        battle.host_id === currentUserId
+    ){
+
+        panelTitle.textContent = "⚔️ Abgelehnt";
+        panelContent.innerHTML =
+            '<p>' + escapeHTML(battle.guest_name) +
+            ' hat die Herausforderung abgelehnt.</p>' +
+            '<button class="panelButton secondary" id="cl">Schließen</button>';
+        panel.classList.add("open");
+        document.getElementById("cl").onclick =
+            function(){ panel.classList.remove("open"); };
+
+        return;
+
+    }
+
+    /* laufendes Battle: Gegner-Score kam rein */
+
+    if(activeBattle && battle.id === activeBattle.id){
+
+        activeBattle.host_score = battle.host_score;
+        activeBattle.guest_score = battle.guest_score;
+        checkBattleFinished();
+
+    }
+
+}
+
+
+function checkBattleFinished(){
+
+    if(!activeBattle)return;
+
+    if(
+        activeBattle.host_score == null ||
+        activeBattle.guest_score == null
+    ){
+
+        return;
+
+    }
+
+    const meins =
+        battleRole === "host"
+        ? Number(activeBattle.host_score)
+        : Number(activeBattle.guest_score);
+
+    const gegner =
+        battleRole === "host"
+        ? Number(activeBattle.guest_score)
+        : Number(activeBattle.host_score);
+
+    const gegnerName =
+        battleRole === "host"
+        ? activeBattle.guest_name
+        : activeBattle.host_name;
+
+    let ergebnis;
+
+    if(meins > gegner){
+
+        ergebnis = "🏆 GEWONNEN!";
+        soundWin();
+        startConfetti();
+
+    }else if(meins < gegner){
+
+        ergebnis = "😔 Verloren";
+        soundLose();
+
+    }else{
+
+        ergebnis = "🤝 Unentschieden!";
+
+    }
+
+    if(activeBattle.status !== "finished"){
+
+        supabaseClient
+            .from("battles")
+            .update({ status: "finished" })
+            .eq("id", activeBattle.id);
+
+    }
+
+    panelTitle.textContent = "⚔️ Battle-Ergebnis";
+    panelContent.innerHTML =
+        '<h1 style="text-align:center">' + ergebnis + '</h1>' +
+        '<div class="friendRow"><div class="name">Du</div>' +
+        '<div>' + accuracyText(meins) + '</div></div>' +
+        '<div class="friendRow"><div class="name">' +
+        escapeHTML(gegnerName) + '</div>' +
+        '<div>' + accuracyText(gegner) + '</div></div>' +
+        '<button class="panelButton" id="battleAgain">Nochmal fordern</button>' +
+        '<button class="panelButton secondary" id="battleDone">Fertig</button>';
+
+    panel.classList.add("open");
+
+    const gegnerId =
+        battleRole === "host"
+        ? activeBattle.guest_id
+        : activeBattle.host_id;
+
+    const gName = gegnerName;
+
+    document.getElementById("battleAgain").onclick =
+    function(){
+
+        endBattle();
+        openBattleSetup(gegnerId, gName);
+
+    };
+
+    document.getElementById("battleDone").onclick =
+    function(){
+
+        endBattle();
+        panel.classList.remove("open");
+
+    };
+
+}
+
+
+function endBattle(){
+
+    activeBattle = null;
+    battleRole = null;
+    battleRound = 0;
+    battleAccuracySum = 0;
+
+    changeMode("oneSecond");
+
+}
 
 
 /* =====================================================
