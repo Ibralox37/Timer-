@@ -684,6 +684,66 @@ input{
     margin-top:2px;
 }
 
+/* Admin-Knopf im Spiel (nur für Admins sichtbar) */
+
+#adminButton{
+    position:fixed;
+    top:18px;
+    left:18px;
+    margin-top:56px;
+    z-index:50;
+    border:1px solid rgba(255,120,90,.45);
+    border-radius:14px;
+    padding:12px 16px;
+    color:white;
+    font-family:"Orbitron",sans-serif;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:1px;
+    background:linear-gradient(90deg,#ff3b4e,#ff8c42);
+    box-shadow:0 6px 20px rgba(255,60,80,.35);
+    transition:filter .15s,transform .1s;
+}
+
+#adminButton:hover{ filter:brightness(1.15); }
+#adminButton:active{ transform:scale(.96); }
+
+/* Kacheln im Admin-Menü */
+
+.adminGrid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:9px;
+    margin:10px 0 4px;
+}
+
+.adminTile{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:15px 14px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:14px;
+    background:linear-gradient(160deg,#2b3955,#1d2740);
+    color:white;
+    font-family:inherit;
+    text-align:left;
+    cursor:pointer;
+    transition:filter .15s,transform .1s;
+}
+
+.adminTile:hover{ filter:brightness(1.2); }
+.adminTile:active{ transform:scale(.98); }
+
+.adminTile .tIcon{ font-size:26px; }
+.adminTile .tName{ font-size:16px; font-weight:700; }
+.adminTile .tHint{ font-size:12px; opacity:.6; }
+
+.adminTile.danger{
+    background:linear-gradient(160deg,#5a1e28,#3a1219);
+    border-color:rgba(255,90,70,.4);
+}
+
 /* ADMIN-Kennzeichnung */
 
 .adminTag{
@@ -1086,6 +1146,14 @@ input{
     #shareButton{ left:12px; }
     #friendsButton{ right:12px; }
 
+    #adminButton{
+        left:12px;
+        top:12px;
+        margin-top:60px;
+        min-height:48px;
+        padding:13px 15px;
+    }
+
     #info{
         top:74px;
         font-size:15px;
@@ -1422,6 +1490,10 @@ input{
 <button id="friendsButton" style="display:none">
     👥 Freunde
     <span id="friendsBadge">0</span>
+</button>
+
+<button id="adminButton" style="display:none">
+    🛡️ ADMIN
 </button>
 
 <!-- =========================
@@ -3185,7 +3257,13 @@ function renderRankingPanel(introText, html, extraText){
 
         ${
             html ||
-            "<p>Noch keine 100%-Erfolge.</p>"
+            (
+                currentMode === "reaction"
+                ? "<p>Noch keine Reaktionszeiten.</p>"
+                : currentMode === "survival"
+                ? "<p>Noch keine Survival-Läufe.</p>"
+                : "<p>Noch keine 100%-Erfolge.</p>"
+            )
         }
 
         ${
@@ -6639,7 +6717,9 @@ function adminBarHTML(admins, art){
    zusätzlich auf dem Server geprüft.
 ===================================================== */
 
-async function openAdminPanel(){
+/* Hauptmenü mit den drei Bereichen */
+
+function openAdminPanel(){
 
     if(!isAdmin){
 
@@ -6650,6 +6730,145 @@ async function openAdminPanel(){
     }
 
     panelTitle.textContent = "🛡️ Admin-Menü";
+
+    panelContent.innerHTML =
+        '<p class="smallText">Angemeldet als ' +
+        escapeHTML(currentUser || "") +
+        '<span class="adminTag">ADMIN</span></p>' +
+
+        '<div class="adminGrid">' +
+
+        '<button class="adminTile" id="tilePlayers">' +
+        '<span class="tIcon">🚫</span><span>' +
+        '<div class="tName">Spieler & Bannen</div>' +
+        '<div class="tHint">Alle Spieler sehen, bannen, entbannen</div>' +
+        '</span></button>' +
+
+        '<button class="adminTile" id="tileBoards">' +
+        '<span class="tIcon">🏆</span><span>' +
+        '<div class="tName">Bestenlisten</div>' +
+        '<div class="tHint">Jede Rangliste einzeln ansehen</div>' +
+        '</span></button>' +
+
+        '<button class="adminTile danger" id="tileReset">' +
+        '<span class="tIcon">🔄</span><span>' +
+        '<div class="tName">Reset</div>' +
+        '<div class="tHint">Meine Rekorde, Punkte und Themes löschen</div>' +
+        '</span></button>' +
+
+        '</div>' +
+
+        '<button class="panelButton secondary" id="closeAdminHome">Schließen</button>';
+
+    panel.classList.add("open");
+
+    document.getElementById("tilePlayers").onclick = openAdminPlayers;
+    document.getElementById("tileBoards").onclick = openAdminBoards;
+    document.getElementById("tileReset").onclick = resetMyData;
+
+    document.getElementById("closeAdminHome").onclick =
+        function(){ panel.classList.remove("open"); };
+
+}
+
+
+/* Bereich 2: alle Bestenlisten zur Auswahl */
+
+function openAdminBoards(){
+
+    if(!isAdmin)return;
+
+    panelTitle.textContent = "🏆 Bestenlisten";
+
+    let kacheln =
+        '<button class="adminTile" data-board="level">' +
+        '<span class="tIcon">🌍</span><span>' +
+        '<div class="tName">Level-Rangliste</div>' +
+        '<div class="tHint">Gesamtwertung aller Spieler</div>' +
+        '</span></button>';
+
+    Object.keys(rankingNames).forEach(function(m){
+
+        kacheln +=
+            '<button class="adminTile" data-board="' + m + '">' +
+            '<span class="tIcon">' +
+            (m === "reaction" ? "⚡" : m === "survival" ? "🔥" : "🎯") +
+            '</span><span>' +
+            '<div class="tName">' + rankingNames[m] + '</div>' +
+            '<div class="tHint">' +
+            (
+                m === "reaction" ? "Schnellste Reaktionszeiten" :
+                m === "survival" ? "Meiste überlebte Runden" :
+                "Meiste 100%-Treffer"
+            ) +
+            '</div></span></button>';
+
+    });
+
+    panelContent.innerHTML =
+        '<p class="smallText">Welche Rangliste willst du sehen?</p>' +
+        '<div class="adminGrid">' + kacheln + '</div>' +
+        '<button class="panelButton secondary" id="backAdminHome">← Zurück</button>';
+
+    document.getElementById("backAdminHome").onclick = openAdminPanel;
+
+    panelContent.querySelectorAll("[data-board]").forEach(function(btn){
+
+        btn.onclick =
+        async function(){
+
+            const wahl = btn.dataset.board;
+
+            if(wahl === "level"){
+
+                await showLevelRanking();
+
+            }else{
+
+                /* Rangliste des gewählten Modus zeigen,
+                   ohne den laufenden Spielmodus zu wechseln */
+
+                const merker = currentMode;
+
+                currentMode = wahl;
+
+                await showGlobalRanking();
+
+                currentMode = merker;
+
+            }
+
+            /* Zurück-Knopf ans Admin-Menü hängen */
+
+            const zurueck =
+                document.createElement("button");
+
+            zurueck.className = "panelButton secondary";
+            zurueck.textContent = "← Zurück zu den Bestenlisten";
+            zurueck.onclick = openAdminBoards;
+
+            panelContent.appendChild(zurueck);
+
+        };
+
+    });
+
+}
+
+
+/* Bereich 1: Spielerverwaltung */
+
+async function openAdminPlayers(){
+
+    if(!isAdmin){
+
+        showToast("⛔ Kein Zugriff", "Dieses Menü ist nur für Admins.");
+
+        return;
+
+    }
+
+    panelTitle.textContent = "🚫 Spieler & Bannen";
     panelContent.innerHTML = "<p>Lädt Spieler ...</p>";
     panel.classList.add("open");
 
@@ -6663,10 +6882,10 @@ async function openAdminPanel(){
 
         panelContent.innerHTML =
             "<p>Konnte die Spielerliste nicht laden.</p>" +
-            '<button class="panelButton secondary" id="closeAdmin">Schließen</button>';
+            '<button class="panelButton secondary" id="closeAdmin">← Zurück</button>';
 
         document.getElementById("closeAdmin").onclick =
-            function(){ panel.classList.remove("open"); };
+            openAdminPanel;
 
         return;
 
@@ -6720,15 +6939,10 @@ async function openAdminPanel(){
         zeilen +
         '<p class="smallText">Gebannte Spieler verschwinden aus allen Bestenlisten, ' +
         'können aber weiterspielen.</p>' +
-        '<button class="panelButton danger" id="resetMineButton">' +
-        '🔄 Meine Rekorde zurücksetzen</button>' +
-        '<button class="panelButton secondary" id="closeAdmin">Schließen</button>';
+        '<button class="panelButton secondary" id="closeAdmin">← Zurück</button>';
 
     document.getElementById("closeAdmin").onclick =
-        function(){ panel.classList.remove("open"); };
-
-    document.getElementById("resetMineButton").onclick =
-        resetMyData;
+        openAdminPanel;
 
     /* Bannen / Entbannen */
 
@@ -6850,7 +7064,7 @@ async function setBan(id, wert, btn){
         : "Der Spieler erscheint wieder in den Listen."
     );
 
-    openAdminPanel();
+    openAdminPlayers();
 
 }
 
@@ -6935,6 +7149,15 @@ function soundLose(){
 
 function enableSocial(){
 
+    /* Admin-Knopf folgt dem Admin-Recht vom Server */
+
+    const adminBtn =
+        document.getElementById("adminButton");
+
+    if(adminBtn)
+        adminBtn.style.display =
+            isAdmin ? "block" : "none";
+
     if(!isOnline() || isGuest || !currentUserId){
 
         friendsButton.style.display = "none";
@@ -6977,6 +7200,12 @@ function enableSocial(){
 function disableSocial(){
 
     friendsButton.style.display = "none";
+
+    const adminBtn =
+        document.getElementById("adminButton");
+
+    if(adminBtn)
+        adminBtn.style.display = "none";
 
     if(socialChannel){
 
@@ -7032,6 +7261,14 @@ friendsButton.onclick =
 function(){
 
     openFriendsPanel();
+
+};
+
+
+document.getElementById("adminButton").onclick =
+function(){
+
+    openAdminPanel();
 
 };
 
