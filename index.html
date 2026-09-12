@@ -330,8 +330,30 @@ button{
     transform:scale(.96);
 }
 
-#modeButton{right:18px}
-#designButton{left:18px}
+/* Die Einzelknöpfe sind seit dem Menü-Umbau nicht mehr
+   im Spiel sichtbar – die Menüs dahinter werden vom
+   Hauptmenü geöffnet. */
+
+#modeButton,
+#designButton,
+#profileButton,
+#rankingButton,
+#shareButton,
+#friendsButton,
+#adminButton{
+    display:none !important;
+}
+
+#modeMenu,
+#designMenu{
+    top:50%;
+    left:50%;
+    right:auto;
+    transform:translate(-50%,-50%);
+    width:min(92%,400px);
+    max-height:84vh;
+    z-index:3100;
+}
 
 #profileButton{
     right:18px;
@@ -857,6 +879,190 @@ input{
     opacity:.85;
     margin-top:2px;
 }
+
+/* =========================
+   STARTBILDSCHIRM
+========================= */
+
+#startScreen{
+    position:fixed;
+    inset:0;
+    z-index:4000;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    background:
+        radial-gradient(900px 620px at 50% 28%,rgba(0,136,255,.16),transparent 62%),
+        radial-gradient(900px 700px at 50% 120%,rgba(0,0,0,.55),transparent 60%),
+        #060d18;
+}
+
+#startScreen.open{ display:flex; }
+
+#startLogo{
+    width:clamp(220px,52vw,420px);
+    filter:
+        drop-shadow(0 0 22px rgba(0,136,255,.6))
+        drop-shadow(0 0 50px rgba(0,85,255,.3));
+    animation:startLogoFloat 3.4s ease-in-out infinite;
+}
+
+@keyframes startLogoFloat{
+    0%,100%{ transform:translateY(0) scale(1); }
+    50%{ transform:translateY(-9px) scale(1.02); }
+}
+
+#startPlayer{
+    margin-top:6px;
+    font-size:15px;
+    opacity:.8;
+}
+
+.startButtons{
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+    width:min(88%,330px);
+    margin-top:26px;
+}
+
+.startBtn{
+    padding:17px;
+    border:0;
+    border-radius:16px;
+    color:#fff;
+    font-family:"Orbitron",sans-serif;
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    cursor:pointer;
+    transition:filter .15s,transform .1s;
+}
+
+.startBtn:hover{ filter:brightness(1.15); }
+.startBtn:active{ transform:scale(.97); }
+
+.startBtn.play{
+    padding:21px;
+    font-size:21px;
+    background:linear-gradient(90deg,#0055ff,#00aaff);
+    box-shadow:0 12px 38px rgba(0,120,255,.45);
+}
+
+.startBtn.sub{
+    background:rgba(255,255,255,.09);
+    border:1px solid rgba(255,255,255,.13);
+    font-size:15px;
+    letter-spacing:1px;
+}
+
+#startFooter{
+    position:absolute;
+    bottom:18px;
+    font-size:12px;
+    opacity:.45;
+    text-align:center;
+    width:100%;
+}
+
+/* =========================
+   HAUPTMENÜ (eine Taste)
+========================= */
+
+#menuButton{
+    position:fixed;
+    top:18px;
+    right:18px;
+    z-index:60;
+    display:none;
+    width:56px;
+    height:56px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:16px;
+    color:#fff;
+    font-size:24px;
+    line-height:1;
+    box-shadow:0 8px 24px rgba(0,0,0,.42);
+    transition:filter .15s,transform .1s;
+}
+
+#menuButton:hover{ filter:brightness(1.18); }
+#menuButton:active{ transform:scale(.94); }
+
+#mainMenu{
+    position:fixed;
+    inset:0;
+    z-index:3000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(5,10,20,.8);
+    backdrop-filter:blur(7px);
+}
+
+#mainMenu.open{ display:flex; }
+
+.menuBox{
+    width:min(92%,430px);
+    max-height:88vh;
+    overflow-y:auto;
+    padding:24px 22px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:24px;
+    background:linear-gradient(160deg,#182741,#0f1726);
+    box-shadow:0 30px 90px rgba(0,0,0,.7);
+    animation:dialogIn .3s cubic-bezier(.2,1.3,.4,1);
+}
+
+.menuHead{
+    font-family:"Orbitron",sans-serif;
+    font-size:20px;
+    font-weight:700;
+    text-align:center;
+    margin-bottom:4px;
+}
+
+.menuSub{
+    font-size:13px;
+    opacity:.6;
+    text-align:center;
+    margin-bottom:16px;
+}
+
+.menuGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.menuItem{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    min-height:88px;
+    padding:13px 8px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;
+    background:linear-gradient(160deg,#2b3955,#1d2740);
+    color:#fff;
+    font-family:inherit;
+    cursor:pointer;
+    transition:filter .15s,transform .1s;
+}
+
+.menuItem:hover{ filter:brightness(1.2); }
+.menuItem:active{ transform:scale(.96); }
+
+.menuItem .mIcon{ font-size:27px; line-height:1; }
+.menuItem .mName{ font-size:14px; font-weight:700; }
+.menuItem .mHint{ font-size:11px; opacity:.55; }
+
+.menuItem.wide{ grid-column:1 / -1; min-height:60px; flex-direction:row; gap:10px; }
+.menuItem.admin{ background:linear-gradient(160deg,#5a1e28,#3a1219); border-color:rgba(255,90,70,.4); }
 
 /* Eigene Meldungsfenster statt der grauen Browser-Kästen */
 
@@ -1501,6 +1707,106 @@ input{
 <!-- =========================
      SPIEL
 ========================= -->
+
+<!-- =========================
+     STARTBILDSCHIRM
+========================= -->
+
+<div id="startScreen">
+
+    <img id="startLogo" src="kronix-logo-hell.png"
+         alt="KRONIX – Timer Challenge"
+         onerror="this.outerHTML='&lt;div class=&quot;accountLogo&quot;&gt;KRONIX&lt;/div&gt;'">
+
+    <div id="startPlayer"></div>
+
+    <div class="startButtons">
+
+        <button class="startBtn play" id="btnPlay">
+            ▶ SPIELEN
+        </button>
+
+        <button class="startBtn sub" id="btnStartMenu">
+            ☰ MENÜ
+        </button>
+
+    </div>
+
+    <div id="startFooter">
+        © 2026 KRONIX – WE CREATE GAMES
+    </div>
+
+</div>
+
+<!-- =========================
+     HAUPTMENÜ
+========================= -->
+
+<button id="menuButton">☰</button>
+
+<div id="mainMenu">
+    <div class="menuBox">
+
+        <div class="menuHead">☰ MENÜ</div>
+        <div class="menuSub" id="menuSub"></div>
+
+        <div class="menuGrid">
+
+            <button class="menuItem" id="miModes">
+                <span class="mIcon">🎮</span>
+                <span class="mName">Modi</span>
+                <span class="mHint" id="miModesHint">Spielmodus wählen</span>
+            </button>
+
+            <button class="menuItem" id="miDesign">
+                <span class="mIcon">🎨</span>
+                <span class="mName">Design</span>
+                <span class="mHint">Farben & Themes</span>
+            </button>
+
+            <button class="menuItem" id="miProfile">
+                <span class="mIcon">👤</span>
+                <span class="mName">Profil</span>
+                <span class="mHint">Level & Statistik</span>
+            </button>
+
+            <button class="menuItem" id="miRanking">
+                <span class="mIcon">🏆</span>
+                <span class="mName">Rangliste</span>
+                <span class="mHint" id="miRankingHint">Bestenliste</span>
+            </button>
+
+            <button class="menuItem" id="miFriends">
+                <span class="mIcon">👥</span>
+                <span class="mName">Freunde</span>
+                <span class="mHint">Battles & Anfragen</span>
+            </button>
+
+            <button class="menuItem" id="miShare">
+                <span class="mIcon">📤</span>
+                <span class="mName">Herausfordern</span>
+                <span class="mHint">Freunde einladen</span>
+            </button>
+
+            <button class="menuItem admin wide" id="miAdmin" style="display:none">
+                <span class="mIcon">🛡️</span>
+                <span class="mName">Admin-Menü</span>
+            </button>
+
+            <button class="menuItem wide" id="miHome">
+                <span class="mIcon">🏠</span>
+                <span class="mName">Startbildschirm</span>
+            </button>
+
+        </div>
+
+        <button class="panelButton secondary" id="miClose"
+                style="margin-top:12px">
+            Weiterspielen
+        </button>
+
+    </div>
+</div>
 
 <canvas id="particles"></canvas>
 
@@ -2342,6 +2648,9 @@ function startGuestMode(){
     lastLevelSeen =
         levelInfo(currentProfile.perfects).level;
 
+    if(typeof zeigeStartbildschirm === "function")
+        zeigeStartbildschirm();
+
 }
 
 
@@ -2500,6 +2809,9 @@ function finishLogin(username, userId, profile){
     lastLevelSeen = levelInfo(profile.perfects).level;
 
     enableSocial();
+
+    if(typeof zeigeStartbildschirm === "function")
+        zeigeStartbildschirm();
 
 }
 
@@ -6305,6 +6617,11 @@ function applyDesign(){
     ).style.background =
         d.button;
 
+    const mBtn = document.getElementById("menuButton");
+
+    if(mBtn)
+        mBtn.style.background = d.button;
+
     /* Partikel und Ziel-Ring folgen dem Design */
 
     particleColor = d.timer;
@@ -8702,6 +9019,206 @@ if("serviceWorker" in navigator){
         });
 
 }
+
+
+/* =====================================================
+   STARTBILDSCHIRM & HAUPTMENÜ
+===================================================== */
+
+const startScreen =
+    document.getElementById("startScreen");
+
+const mainMenu =
+    document.getElementById("mainMenu");
+
+const menuButton =
+    document.getElementById("menuButton");
+
+function zeigeStartbildschirm(){
+
+    /* laufendes Spiel anhalten */
+
+    running = false;
+    cancelAnimationFrame(animationFrame);
+    clearTimeout(reactionTimeout);
+    timer.classList.remove("running");
+    showRing(false);
+    radarVerstecken();
+    hideStreak();
+
+    mainMenu.classList.remove("open");
+    panel.classList.remove("open");
+    modeMenu.classList.remove("open");
+    designMenu.classList.remove("open");
+
+    const account = getCurrentAccount();
+
+    document.getElementById("startPlayer").innerHTML =
+        account
+        ? escapeHTML(isGuest ? "Gast" : (currentUser || "")) +
+          ' · <span class="levelChip" style="background:linear-gradient(90deg,' +
+          levelInfo(account.perfects).rangFarbe + ',#0088ff)">' +
+          levelInfo(account.perfects).rangIcon + " LVL " +
+          levelInfo(account.perfects).level + "</span>"
+        : "";
+
+    startScreen.classList.add("open");
+    menuButton.style.display = "none";
+
+}
+
+function spielStarten(){
+
+    startScreen.classList.remove("open");
+    menuButton.style.display = "block";
+
+    /* aktuellen Modus frisch aufsetzen */
+
+    changeMode(currentMode || "oneSecond");
+
+}
+
+document.getElementById("btnPlay").onclick = spielStarten;
+
+document.getElementById("btnStartMenu").onclick =
+function(){
+
+    startScreen.classList.remove("open");
+    menuButton.style.display = "block";
+    oeffneHauptmenue();
+
+};
+
+
+/* ---------- Hauptmenü ---------- */
+
+function oeffneHauptmenue(){
+
+    const account = getCurrentAccount();
+
+    document.getElementById("menuSub").textContent =
+        account
+        ? (isGuest ? "Gast" : currentUser) +
+          " · " + getPoints() + " Punkte"
+        : "";
+
+    /* Hinweise aktuell halten */
+
+    const namen = {
+        normal:"Normalmodus", blind:"Blindmodus",
+        challenge:"Challenge", challengeBlind:"Challenge Blind",
+        oneSecond:"Stoppe bei 1,00", fiveSecond:"Stoppe bei 5,00",
+        tenSecond:"Stoppe bei 10,00", reaction:"Reaktionstest",
+        survival:"Survival", friends:"Freunde", battle:"Battle"
+    };
+
+    document.getElementById("miModesHint").textContent =
+        "Jetzt: " + (namen[currentMode] || currentMode);
+
+    document.getElementById("miRankingHint").textContent =
+        rankingAllowed()
+        ? "Bestenliste dieses Modus"
+        : "Level-Rangliste";
+
+    document.getElementById("miAdmin").style.display =
+        isAdmin ? "flex" : "none";
+
+    mainMenu.classList.add("open");
+
+}
+
+function schliesseHauptmenue(){
+
+    mainMenu.classList.remove("open");
+
+}
+
+menuButton.onclick = oeffneHauptmenue;
+
+document.getElementById("miClose").onclick = schliesseHauptmenue;
+
+document.getElementById("miHome").onclick = zeigeStartbildschirm;
+
+document.getElementById("miModes").onclick =
+function(){
+
+    schliesseHauptmenue();
+    showModeCats();
+    modeMenu.classList.add("open");
+
+};
+
+document.getElementById("miDesign").onclick =
+function(){
+
+    schliesseHauptmenue();
+    refreshThemeLocks();
+    designMenu.classList.add("open");
+
+};
+
+document.getElementById("miProfile").onclick =
+function(){
+
+    schliesseHauptmenue();
+    profileButton.onclick();
+
+};
+
+document.getElementById("miRanking").onclick =
+function(){
+
+    schliesseHauptmenue();
+
+    if(rankingAllowed()){
+
+        showGlobalRanking();
+
+    }else{
+
+        showLevelRanking();
+
+    }
+
+};
+
+document.getElementById("miFriends").onclick =
+function(){
+
+    schliesseHauptmenue();
+
+    if(isOnline() && !isGuest && currentUserId){
+
+        openFriendsPanel();
+
+    }else{
+
+        showMessage(
+            "Konto nötig",
+            "Für Freunde und Online-Battles brauchst du ein Konto. " +
+            "Melde dich im Profil an!",
+            "👥"
+        );
+
+    }
+
+};
+
+document.getElementById("miShare").onclick =
+function(){
+
+    schliesseHauptmenue();
+    shareButton.click();
+
+};
+
+document.getElementById("miAdmin").onclick =
+function(){
+
+    schliesseHauptmenue();
+    openAdminPanel();
+
+};
 
 
 /* =====================================================
