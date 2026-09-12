@@ -89,6 +89,180 @@ button{
     cursor:pointer;
 }
 
+/* Partikel-Hintergrund */
+
+#particles{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:1;
+}
+
+/* Ziel-Ring um den Timer */
+
+#ringWrap{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    z-index:2;
+    opacity:0;
+    transition:opacity .35s;
+}
+
+#ringWrap.show{ opacity:1; }
+
+#ringWrap svg{
+    display:block;
+    transform:rotate(-90deg);
+    filter:drop-shadow(0 0 10px rgba(0,170,255,.55));
+}
+
+.ringTrack{
+    fill:none;
+    stroke:rgba(255,255,255,.09);
+    stroke-width:6;
+}
+
+.ringFill{
+    fill:none;
+    stroke:#00aaff;
+    stroke-width:6;
+    stroke-linecap:round;
+    transition:stroke .2s;
+}
+
+/* Zielmarke auf dem Ring */
+
+.ringMark{
+    stroke:rgba(255,255,255,.75);
+    stroke-width:3;
+}
+
+/* Präzisions-Radar: zeigt nach jedem Versuch,
+   wie nah man dran war – mit den letzten Versuchen */
+
+#radar{
+    position:fixed;
+    left:50%;
+    bottom:86px;
+    transform:translateX(-50%) translateY(18px);
+    z-index:46;
+    width:min(92%,420px);
+    padding:12px 14px 10px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:16px;
+    background:rgba(12,20,34,.82);
+    backdrop-filter:blur(6px);
+    box-shadow:0 12px 40px rgba(0,0,0,.45);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s,transform .3s;
+}
+
+#radar.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
+
+.radarTitle{
+    font-size:11px;
+    letter-spacing:1.4px;
+    opacity:.55;
+    text-align:center;
+    margin-bottom:7px;
+}
+
+.radarScale{
+    position:relative;
+    height:34px;
+}
+
+/* Mittellinie = exakte Zielzeit */
+
+.radarCenter{
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:2px;
+    margin-left:-1px;
+    background:linear-gradient(180deg,transparent,#22c55e,transparent);
+    box-shadow:0 0 10px rgba(34,197,94,.8);
+}
+
+/* Toleranzband */
+
+.radarBand{
+    position:absolute;
+    top:9px;
+    bottom:9px;
+    left:44%;
+    right:44%;
+    border-radius:6px;
+    background:rgba(34,197,94,.16);
+    border:1px solid rgba(34,197,94,.3);
+}
+
+.radarAxis{
+    position:absolute;
+    left:0;
+    right:0;
+    top:50%;
+    height:1px;
+    background:rgba(255,255,255,.12);
+}
+
+.radarDot{
+    position:absolute;
+    top:50%;
+    width:11px;
+    height:11px;
+    margin:-5.5px 0 0 -5.5px;
+    border-radius:50%;
+    background:#00aaff;
+    box-shadow:0 0 10px currentColor;
+    transition:left .35s cubic-bezier(.2,1.2,.4,1);
+}
+
+.radarDot.neu{
+    width:15px;
+    height:15px;
+    margin:-7.5px 0 0 -7.5px;
+    border:2px solid #fff;
+}
+
+.radarLabels{
+    display:flex;
+    justify-content:space-between;
+    font-size:10px;
+    opacity:.45;
+    margin-top:2px;
+}
+
+/* Erschütterung bei Fehlschlag */
+
+#shakeLayer{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:3;
+}
+
+.shaking{
+    animation:screenShake .42s cubic-bezier(.36,.07,.19,.97);
+}
+
+@keyframes screenShake{
+    10%,90%{ transform:translate(-2px,1px); }
+    20%,80%{ transform:translate(4px,-2px); }
+    30%,50%,70%{ transform:translate(-7px,2px); }
+    40%,60%{ transform:translate(7px,-1px); }
+}
+
 #timer{
     font-family:"Orbitron","Rajdhani",Arial,sans-serif;
     font-size:clamp(60px,18vw,125px);
@@ -1328,6 +1502,17 @@ input{
      SPIEL
 ========================= -->
 
+<canvas id="particles"></canvas>
+
+<div id="ringWrap">
+    <svg id="targetRing" width="300" height="300" viewBox="0 0 300 300">
+        <circle class="ringTrack" cx="150" cy="150" r="138"></circle>
+        <circle class="ringFill" id="ringFill" cx="150" cy="150" r="138"
+                stroke-dasharray="867" stroke-dashoffset="867"></circle>
+        <line class="ringMark" x1="150" y1="6" x2="150" y2="22"></line>
+    </svg>
+</div>
+
 <div id="gameArea">
     <div id="timer">00.00</div>
 </div>
@@ -1569,6 +1754,20 @@ input{
 </div>
 
 <div id="pointsPop"></div>
+
+<div id="radar">
+    <div class="radarTitle">PRÄZISIONS-RADAR · letzte Versuche</div>
+    <div class="radarScale" id="radarScale">
+        <div class="radarAxis"></div>
+        <div class="radarBand"></div>
+        <div class="radarCenter"></div>
+    </div>
+    <div class="radarLabels">
+        <span>zu früh</span>
+        <span id="radarMitte">PERFEKT</span>
+        <span>zu spät</span>
+    </div>
+</div>
 
 <button id="shareButton">
     📤 Herausfordern
@@ -2891,6 +3090,281 @@ function soundPerfect(){
 
 
 /* =====================================================
+   PARTIKEL-HINTERGRUND
+   Schwebende Punkte in der Designfarbe, reagieren
+   auf perfekte Treffer mit einer Druckwelle.
+===================================================== */
+
+const particleCanvas =
+    document.getElementById("particles");
+
+const pctx =
+    particleCanvas.getContext("2d");
+
+let particles = [];
+let particleColor = "#00aaff";
+
+function initParticles(){
+
+    particleCanvas.width = innerWidth;
+    particleCanvas.height = innerHeight;
+
+    const anzahl =
+        Math.min(
+            70,
+            Math.round(innerWidth * innerHeight / 26000)
+        );
+
+    particles = [];
+
+    for(let i = 0; i < anzahl; i++){
+
+        particles.push({
+            x: Math.random() * particleCanvas.width,
+            y: Math.random() * particleCanvas.height,
+            r: Math.random() * 2.1 + 0.7,
+            vx: (Math.random() - 0.5) * 0.22,
+            vy: (Math.random() - 0.5) * 0.22,
+            a: Math.random() * 0.45 + 0.12,
+            puls: Math.random() * Math.PI * 2
+        });
+
+    }
+
+}
+
+function drawParticles(){
+
+    pctx.clearRect(
+        0, 0,
+        particleCanvas.width,
+        particleCanvas.height
+    );
+
+    particles.forEach(function(p){
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.puls += 0.012;
+
+        /* am Rand sanft umkehren */
+
+        if(p.x < -10) p.x = particleCanvas.width + 10;
+        if(p.x > particleCanvas.width + 10) p.x = -10;
+        if(p.y < -10) p.y = particleCanvas.height + 10;
+        if(p.y > particleCanvas.height + 10) p.y = -10;
+
+        /* Reibung nach einer Druckwelle */
+
+        p.vx *= 0.995;
+        p.vy *= 0.995;
+
+        const alpha =
+            p.a * (0.65 + 0.35 * Math.sin(p.puls));
+
+        pctx.globalAlpha = alpha;
+        pctx.fillStyle = particleColor;
+        pctx.beginPath();
+        pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pctx.fill();
+
+    });
+
+    pctx.globalAlpha = 1;
+
+    requestAnimationFrame(drawParticles);
+
+}
+
+/* Druckwelle vom Bildschirmmittelpunkt */
+
+function particleBurst(staerke){
+
+    const mx = particleCanvas.width / 2;
+    const my = particleCanvas.height / 2;
+
+    particles.forEach(function(p){
+
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.max(40, Math.hypot(dx, dy));
+
+        p.vx += (dx / dist) * (staerke || 3);
+        p.vy += (dy / dist) * (staerke || 3);
+
+    });
+
+}
+
+window.addEventListener("resize", initParticles);
+
+initParticles();
+drawParticles();
+
+
+/* =====================================================
+   ZIEL-RING
+   Füllt sich, während der Timer auf die Zielzeit
+   zuläuft. Grün kurz vor dem Ziel, rot danach.
+===================================================== */
+
+const ringWrap =
+    document.getElementById("ringWrap");
+
+const ringFill =
+    document.getElementById("ringFill");
+
+const RING_UMFANG = 867;
+
+function showRing(an){
+
+    ringWrap.classList.toggle("show", !!an);
+
+    if(!an){
+
+        ringFill.style.strokeDashoffset = RING_UMFANG;
+
+    }
+
+}
+
+function updateRing(anteil){
+
+    /* anteil: 0 = Start, 1 = Zielzeit erreicht */
+
+    const begrenzt =
+        Math.max(0, Math.min(1.35, anteil));
+
+    ringFill.style.strokeDashoffset =
+        RING_UMFANG * (1 - Math.min(1, begrenzt));
+
+    /* Farbe als Hilfe: nah am Ziel grün, drüber rot */
+
+    ringFill.style.stroke =
+        begrenzt > 1.02 ? "#ff3b4e" :
+        begrenzt > 0.93 ? "#22c55e" :
+        particleColor;
+
+}
+
+
+/* =====================================================
+   PRÄZISIONS-RADAR
+   Zeigt nach jedem Versuch als Punkt, wie weit man
+   daneben lag – und die letzten fünf zum Vergleich.
+   Die Mitte ist die exakte Zielzeit.
+===================================================== */
+
+const radarBox =
+    document.getElementById("radar");
+
+const radarScale =
+    document.getElementById("radarScale");
+
+let radarVerlauf = [];
+let radarTimer = null;
+
+/* Abweichung in Millisekunden (negativ = zu früh) */
+
+function radarZeigen(abweichungMs){
+
+    radarVerlauf.push(abweichungMs);
+
+    if(radarVerlauf.length > 5)
+        radarVerlauf.shift();
+
+    /* alte Punkte entfernen */
+
+    radarScale
+        .querySelectorAll(".radarDot")
+        .forEach(function(d){ d.remove(); });
+
+    /* Skala: ±250 ms füllen die Breite */
+
+    const spanne = 250;
+
+    radarVerlauf.forEach(function(ms, i){
+
+        const neuster =
+            i === radarVerlauf.length - 1;
+
+        const anteil =
+            Math.max(-1, Math.min(1, ms / spanne));
+
+        const punkt =
+            document.createElement("div");
+
+        punkt.className =
+            "radarDot" + (neuster ? " neu" : "");
+
+        punkt.style.left =
+            (50 + anteil * 46) + "%";
+
+        /* ältere Punkte blasser */
+
+        punkt.style.opacity =
+            neuster ? "1" :
+            String(0.25 + i * 0.12);
+
+        punkt.style.background =
+            Math.abs(ms) < 5 ? "#22c55e" :
+            Math.abs(ms) < 30 ? particleColor :
+            "#ff8c42";
+
+        punkt.style.color =
+            punkt.style.background;
+
+        radarScale.appendChild(punkt);
+
+    });
+
+    /* Mittel-Beschriftung: wie weit war der letzte Versuch? */
+
+    document.getElementById("radarMitte").textContent =
+        Math.abs(abweichungMs) < 5
+        ? "PERFEKT"
+        : (abweichungMs > 0 ? "+" : "") + abweichungMs + " ms";
+
+    radarBox.classList.add("show");
+
+    clearTimeout(radarTimer);
+
+    radarTimer =
+        setTimeout(
+            function(){ radarBox.classList.remove("show"); },
+            4200
+        );
+
+}
+
+function radarVerstecken(){
+
+    radarBox.classList.remove("show");
+
+}
+
+
+/* =====================================================
+   ERSCHÜTTERUNG
+===================================================== */
+
+function shakeScreen(){
+
+    const ziel = document.getElementById("gameArea");
+
+    ziel.classList.remove("shaking");
+    void ziel.offsetWidth;
+    ziel.classList.add("shaking");
+
+    setTimeout(
+        function(){ ziel.classList.remove("shaking"); },
+        450
+    );
+
+}
+
+
+/* =====================================================
    BILDSCHIRM-BLITZ
 ===================================================== */
 
@@ -3881,6 +4355,21 @@ function updateTimer(){
         performance.now() -
         startTime;
 
+    /* Ziel-Ring mitlaufen lassen */
+
+    if(
+        challengeTarget > 0 &&
+        currentMode !== "normal" &&
+        currentMode !== "blind" &&
+        currentMode !== "reaction"
+    ){
+
+        updateRing(
+            (elapsedTime / 1000) / challengeTarget
+        );
+
+    }
+
     if(
         currentMode === "blind" ||
         currentMode === "challengeBlind"
@@ -4084,6 +4573,16 @@ function handleGameTap(eventTime){
 
         soundStart();
 
+        /* Ring nur bei Modi mit Zielzeit */
+
+        showRing(
+            challengeTarget > 0 &&
+            currentMode !== "normal" &&
+            currentMode !== "blind"
+        );
+
+        updateRing(0);
+
         timer.classList.add(
             "running"
         );
@@ -4211,6 +4710,8 @@ function handleGameTap(eventTime){
         false;
 
     soundStop();
+
+    showRing(false);
 
     timer.classList.remove(
         "running"
@@ -4385,6 +4886,12 @@ function finishSurvival(actual){
 
         trackRound(null, Math.round(difference * 1000));
 
+        radarZeigen(
+            Math.round(
+                (shownTime(actual) - challengeTarget) * 1000
+            )
+        );
+
         addPoints(5 + survivalRound * 2);
 
         showPoints(5 + survivalRound * 2);
@@ -4413,6 +4920,7 @@ function finishSurvival(actual){
         trackRound(null, null);
 
         soundFail();
+        shakeScreen();
 
         flashScreen("#dc2626");
 
@@ -4551,6 +5059,7 @@ function handleReactionTap(eventTime){
             "Zu früh! Tippe für einen neuen Versuch";
 
         soundFail();
+        shakeScreen();
 
         flashScreen("#dc2626");
 
@@ -4697,6 +5206,8 @@ function celebratePerfectAnimation(){
 
     flashScreen("#2e9bff");
 
+    particleBurst(4.5);
+
     timer.classList.remove(
         "perfect"
     );
@@ -4740,6 +5251,14 @@ function finishTarget(
         );
 
     trackRound(accuracy, abweichungMs);
+
+    /* Präzisions-Radar: mit Vorzeichen (früh/spät) */
+
+    radarZeigen(
+        Math.round(
+            (shownTime(actual) - challengeTarget) * 1000
+        )
+    );
 
 
     if(
@@ -4884,6 +5403,10 @@ function changeMode(
     timer.classList.remove(
         "running"
     );
+
+    showRing(false);
+    radarVerstecken();
+    radarVerlauf = [];
 
     elapsedTime =
         0;
@@ -5781,6 +6304,13 @@ function applyDesign(){
         "shareButton"
     ).style.background =
         d.button;
+
+    /* Partikel und Ziel-Ring folgen dem Design */
+
+    particleColor = d.timer;
+
+    if(typeof ringFill !== "undefined" && ringFill)
+        ringFill.style.stroke = d.timer;
 
     info.style.color =
         d.info;
