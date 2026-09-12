@@ -684,6 +684,60 @@ input{
     margin-top:2px;
 }
 
+/* ADMIN-Kennzeichnung */
+
+.adminTag{
+    display:inline-block;
+    margin-left:6px;
+    padding:3px 9px;
+    border-radius:20px;
+    background:linear-gradient(90deg,#ff3b4e,#ff8c42);
+    box-shadow:0 0 14px rgba(255,60,80,.5);
+    font-family:"Orbitron",sans-serif;
+    font-weight:700;
+    font-size:11px;
+    letter-spacing:1px;
+    vertical-align:middle;
+}
+
+/* Admin-Leiste über der Bestenliste (außer Konkurrenz) */
+
+.adminBar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 12px;
+    margin:2px 0 12px;
+    border-radius:12px;
+    border:1px solid rgba(255,90,70,.45);
+    background:linear-gradient(135deg,rgba(255,60,80,.16),rgba(255,140,66,.10));
+}
+
+.adminBar .rankName{
+    flex:1;
+    text-align:left;
+    font-weight:700;
+}
+
+.adminBar .adminScore{
+    font-family:"Orbitron",sans-serif;
+    font-weight:700;
+    color:#ff8c42;
+}
+
+.adminNote{
+    font-size:11px;
+    opacity:.6;
+    margin:-8px 0 10px;
+}
+
+/* Gebannte Spieler im Admin-Menü */
+
+.friendRow.bannedRow{
+    opacity:.5;
+    border:1px dashed rgba(255,60,80,.5);
+}
+
 /* Level-Chip auf dem Anmelde-/Profilbereich */
 
 .levelChip{
@@ -1442,6 +1496,7 @@ function isOnline(){
 
 let currentUser = null;      /* Anzeigename */
 let currentUserId = null;    /* Server-ID des Kontos */
+let isAdmin = false;         /* vom Server geladen, nie hier gesetzt */
 let currentProfile = null;   /* { image, perfects, ranks } */
 let isGuest = false;
 let accountLoginMode = false;
@@ -1765,6 +1820,7 @@ async function(){
 function startGuestMode(){
 
     isGuest = true;
+    isAdmin = false;
 
     currentUser = null;
     currentUserId = null;
@@ -1872,13 +1928,15 @@ async function loadProfile(user){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("username,image,perfects,ranks")
+            .select("username,image,perfects,ranks,is_admin,banned")
             .eq("id", user.id)
             .maybeSingle();
 
     if(error)throw error;
 
     if(data){
+
+        isAdmin = data.is_admin === true;
 
         finishLogin(
             data.username,
@@ -2042,6 +2100,7 @@ function backToAccountScreen(){
     currentUserId = null;
     currentProfile = null;
     isGuest = false;
+    isAdmin = false;
 
     localStorage.removeItem(
         "kronixGuestActive"
@@ -2135,7 +2194,7 @@ function(){
                 isGuest
                 ? "Gast"
                 : currentUser
-            )}
+            )}${isAdmin ? '<span class="adminTag">ADMIN</span>' : ""}
             <span class="levelChip" style="background:linear-gradient(90deg,${levelInfo(account.perfects).rangFarbe},#0088ff)">
                 ${levelInfo(account.perfects).rangIcon}
                 ${levelInfo(account.perfects).rang}
@@ -2218,6 +2277,14 @@ function(){
             🌍 Level-Rangliste
         </button>
 
+        ${
+            isAdmin
+            ? '<button class="panelButton" id="adminPanelButton" ' +
+              'style="background:linear-gradient(90deg,#ff3b4e,#ff8c42)">' +
+              '🛡️ Admin-Menü</button>'
+            : ""
+        }
+
         ${accountButtons}
 
         <button
@@ -2235,6 +2302,17 @@ function(){
         "levelRankButton"
     ).onclick =
     showLevelRanking;
+
+
+    if(isAdmin){
+
+        const adminBtn =
+            document.getElementById("adminPanelButton");
+
+        if(adminBtn)
+            adminBtn.onclick = openAdminPanel;
+
+    }
 
 
     document.getElementById(
@@ -3197,7 +3275,7 @@ async function showGlobalRanking(){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("username,image,ranks")
+            .select("username,image,ranks,is_admin,banned")
             .limit(500);
 
     if(error){
@@ -3212,8 +3290,15 @@ async function showGlobalRanking(){
 
     }
 
+    const alle = data || [];
+
     const players =
-        (data || [])
+        alle
+
+        .filter(
+            row =>
+                !row.is_admin && !row.banned
+        )
 
         .map(
             function(row){
@@ -3252,6 +3337,17 @@ async function showGlobalRanking(){
 
         .slice(0, 50);
 
+    /* Admins stehen daneben, nicht in der Wertung */
+
+    const admins =
+        alle.filter(
+            row =>
+                row.is_admin &&
+                !row.banned &&
+                row.ranks &&
+                Number(row.ranks[currentMode] || 0) > 0
+        );
+
     const intro =
         currentMode === "reaction"
         ? "🌐 Globale Rangliste – schnellste Reaktion"
@@ -3261,6 +3357,7 @@ async function showGlobalRanking(){
 
     renderRankingPanel(
         intro,
+        adminBarHTML(admins, "mode") +
         rankingRowsHTML(players),
         isGuest
         ? "Als Gast erscheinst du nicht in der Liste."
@@ -6414,9 +6511,9 @@ async function showLevelRanking(){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("username,image,perfects")
+            .select("username,image,perfects,is_admin,banned")
             .order("perfects", { ascending: false })
-            .limit(50);
+            .limit(60);
 
     if(error){
 
@@ -6431,10 +6528,24 @@ async function showLevelRanking(){
 
     }
 
-    const spieler =
-        (data || []).filter(function(p){
+    const alle = data || [];
 
-            return Number(p.perfects) > 0;
+    /* Admins laufen ausser Konkurrenz,
+       gebannte Spieler erscheinen gar nicht */
+
+    const spieler =
+        alle.filter(function(p){
+
+            return Number(p.perfects) > 0 &&
+                   !p.is_admin &&
+                   !p.banned;
+
+        });
+
+    const admins =
+        alle.filter(function(p){
+
+            return p.is_admin && !p.banned;
 
         });
 
@@ -6469,12 +6580,199 @@ async function showLevelRanking(){
     });
 
     panelContent.innerHTML =
+        adminBarHTML(admins, "level") +
         '<p class="smallText">Die Spieler mit den meisten Leveln weltweit</p>' +
         (html || "<p>Noch keine Spieler mit Leveln.</p>") +
         '<button class="panelButton secondary" id="closeLevelRank">Schließen</button>';
 
     document.getElementById("closeLevelRank").onclick =
         function(){ panel.classList.remove("open"); };
+
+}
+
+
+/* Admin-Leiste über jeder Bestenliste:
+   steht neben der Wertung, nicht darin. */
+
+function adminBarHTML(admins, art){
+
+    if(!admins || admins.length === 0)return "";
+
+    return admins.map(function(a){
+
+        let wert;
+
+        if(art === "level"){
+
+            const lvl = levelInfo(a.perfects).level;
+            const rang = rankInfo(lvl);
+
+            wert = rang.icon + " LVL " + lvl;
+
+        }else{
+
+            const score =
+                a.ranks
+                ? Number(a.ranks[currentMode] || 0)
+                : 0;
+
+            wert = scoreLabel(currentMode, score);
+
+        }
+
+        return '<div class="adminBar">' +
+            '<img class="rankAvatar" src="' +
+            (a.image || DEFAULT_AVATAR_SMALL) + '">' +
+            '<div class="rankName">' + escapeHTML(a.username) +
+            '<span class="adminTag">ADMIN</span></div>' +
+            '<div class="adminScore">' + wert + '</div></div>' +
+            '<p class="adminNote">Läuft außer Konkurrenz – ohne Platzierung.</p>';
+
+    }).join("");
+
+}
+
+
+/* =====================================================
+   ADMIN-MENÜ
+   Sichtbar nur mit Admin-Recht; jede Aktion wird
+   zusätzlich auf dem Server geprüft.
+===================================================== */
+
+async function openAdminPanel(){
+
+    if(!isAdmin){
+
+        showToast("⛔ Kein Zugriff", "Dieses Menü ist nur für Admins.");
+
+        return;
+
+    }
+
+    panelTitle.textContent = "🛡️ Admin-Menü";
+    panelContent.innerHTML = "<p>Lädt Spieler ...</p>";
+    panel.classList.add("open");
+
+    const { data, error } =
+        await supabaseClient
+            .from("profiles")
+            .select("id,username,image,perfects,banned,is_admin,created_at")
+            .order("created_at", { ascending: true });
+
+    if(error){
+
+        panelContent.innerHTML =
+            "<p>Konnte die Spielerliste nicht laden.</p>" +
+            '<button class="panelButton secondary" id="closeAdmin">Schließen</button>';
+
+        document.getElementById("closeAdmin").onclick =
+            function(){ panel.classList.remove("open"); };
+
+        return;
+
+    }
+
+    const spieler = data || [];
+
+    const aktiv =
+        spieler.filter(function(p){ return !p.banned; }).length;
+
+    const gebannt =
+        spieler.filter(function(p){ return p.banned; }).length;
+
+    const zeilen =
+        spieler.map(function(p){
+
+            const lvl = levelInfo(p.perfects).level;
+
+            const knopf =
+                p.is_admin
+                ? '<span class="adminTag">ADMIN</span>'
+                : p.banned
+                ? '<button class="miniButton green" data-unban="' + p.id + '">Entbannen</button>'
+                : '<button class="miniButton red" data-ban="' + p.id + '">Bannen</button>';
+
+            return '<div class="friendRow' +
+                (p.banned ? ' bannedRow' : '') + '">' +
+                '<img class="rankAvatar" src="' +
+                (p.image || DEFAULT_AVATAR_SMALL) + '">' +
+                '<div class="name">' + escapeHTML(p.username) +
+                '<div class="smallText">LVL ' + lvl +
+                ' · ' + (p.perfects || 0) + ' Treffer' +
+                (p.banned ? ' · 🚫 gebannt' : '') + '</div></div>' +
+                knopf + '</div>';
+
+        }).join("");
+
+    panelContent.innerHTML =
+        '<div class="statGrid">' +
+        '<div class="statCard"><div class="val">' + spieler.length +
+        '</div><div class="lbl">Spieler gesamt</div></div>' +
+        '<div class="statCard"><div class="val">' + aktiv +
+        '</div><div class="lbl">Aktiv</div></div>' +
+        '<div class="statCard"><div class="val">' + gebannt +
+        '</div><div class="lbl">🚫 Gebannt</div></div>' +
+        '<div class="statCard"><div class="val">' +
+        spieler.filter(function(p){ return Number(p.perfects) > 0; }).length +
+        '</div><div class="lbl">Haben gespielt</div></div>' +
+        '</div>' +
+        '<h3 style="margin:14px 0 6px">👥 Alle Spieler</h3>' +
+        zeilen +
+        '<p class="smallText">Gebannte Spieler verschwinden aus allen Bestenlisten, ' +
+        'können aber weiterspielen.</p>' +
+        '<button class="panelButton secondary" id="closeAdmin">Schließen</button>';
+
+    document.getElementById("closeAdmin").onclick =
+        function(){ panel.classList.remove("open"); };
+
+    /* Bannen / Entbannen */
+
+    panelContent.querySelectorAll("[data-ban]").forEach(function(btn){
+
+        btn.onclick = function(){ setBan(btn.dataset.ban, true, btn); };
+
+    });
+
+    panelContent.querySelectorAll("[data-unban]").forEach(function(btn){
+
+        btn.onclick = function(){ setBan(btn.dataset.unban, false, btn); };
+
+    });
+
+}
+
+
+async function setBan(id, wert, btn){
+
+    btn.disabled = true;
+    btn.textContent = "...";
+
+    const { error } =
+        await supabaseClient
+            .rpc("admin_set_ban", {
+                target: id,
+                wert: wert
+            });
+
+    if(error){
+
+        showToast("⛔ Fehler", error.message);
+
+        btn.disabled = false;
+        btn.textContent = wert ? "Bannen" : "Entbannen";
+
+        return;
+
+    }
+
+    showToast(
+        wert ? "🚫 Gebannt" : "✅ Entbannt",
+        wert
+        ? "Der Spieler ist aus allen Bestenlisten raus."
+        : "Der Spieler erscheint wieder in den Listen."
+    );
+
+    openAdminPanel();
 
 }
 
