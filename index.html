@@ -362,7 +362,7 @@ button{
     transform:translate(-50%,-50%);
     width:min(92%,400px);
     max-height:84vh;
-    z-index:3100;
+    z-index:4600;   /* über Startbildschirm und Hauptmenü */
 }
 
 #profileButton{
@@ -640,7 +640,7 @@ button{
     background:#182238;
     box-shadow:0 25px 80px rgba(0,0,0,.65);
     display:none;
-    z-index:200;
+    z-index:4600;   /* über Startbildschirm und Hauptmenü */
 }
 
 #panel.open{
@@ -1001,10 +1001,31 @@ input{
 #menuButton:hover{ filter:brightness(1.18); }
 #menuButton:active{ transform:scale(.94); }
 
+/* Punktestand des aktuellen Modus, dezent oben rechts */
+
+#scoreTag{
+    position:fixed;
+    top:80px;
+    right:18px;
+    z-index:44;
+    display:none;
+    padding:7px 13px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:12px;
+    background:rgba(12,20,34,.7);
+    backdrop-filter:blur(5px);
+    font-family:"Orbitron",sans-serif;
+    font-size:14px;
+    font-weight:700;
+    pointer-events:none;
+}
+
+#scoreTag.show{ display:block; }
+
 #mainMenu{
     position:fixed;
     inset:0;
-    z-index:3000;
+    z-index:4500;   /* über dem Startbildschirm (4000) */
     display:none;
     align-items:center;
     justify-content:center;
@@ -1603,15 +1624,37 @@ input{
         padding:13px 15px;
     }
 
+    /* Info-Zeile unter Menü-Taste und Punktestand,
+       damit sich auf schmalen Handys nichts überlappt */
+
+    #menuButton{
+        top:12px;
+        right:12px;
+        width:52px;
+        height:52px;
+        font-size:22px;
+    }
+
+    #scoreTag{
+        top:72px;
+        right:12px;
+        font-size:13px;
+        padding:6px 11px;
+    }
+
     #info{
-        top:74px;
+        top:120px;
         font-size:15px;
-        width:86%;
+        width:92%;
     }
 
     #streakBox{
-        top:118px;
+        top:166px;
         font-size:15px;
+    }
+
+    #radar{
+        bottom:24px;
     }
 
     #panel{
@@ -1753,6 +1796,8 @@ input{
 ========================= -->
 
 <button id="menuButton">☰</button>
+
+<div id="scoreTag"></div>
 
 <div id="mainMenu">
     <div class="menuBox">
@@ -4045,6 +4090,14 @@ function updateRankingButton(){
         rankingButton.style.display =
             "none";
 
+        /* auch die sichtbare Anzeige ausblenden */
+
+        const tagAus =
+            document.getElementById("scoreTag");
+
+        if(tagAus)
+            tagAus.classList.remove("show");
+
         return;
 
     }
@@ -4066,6 +4119,29 @@ function updateRankingButton(){
             currentMode,
             Number(score)
         );
+
+    /* sichtbare Anzeige im Spiel (der alte Knopf ist
+       seit dem Menü-Umbau ausgeblendet) */
+
+    const tag =
+        document.getElementById("scoreTag");
+
+    if(tag){
+
+        if(rankingAllowed()){
+
+            tag.textContent =
+                scoreLabel(currentMode, Number(score));
+
+            tag.classList.add("show");
+
+        }else{
+
+            tag.classList.remove("show");
+
+        }
+
+    }
 
 }
 
@@ -8833,6 +8909,14 @@ function finishBattleRound(actual){
     battleAccuracySum += accuracy;
     battleRound++;
 
+    /* Präzisions-Radar auch im Battle */
+
+    radarZeigen(
+        Math.round(
+            (shownTime(actual) - challengeTarget) * 1000
+        )
+    );
+
     timer.textContent = formatTime(elapsedTime);
     resultVisible = true;
 
@@ -9110,6 +9194,10 @@ function zeigeStartbildschirm(){
     startScreen.classList.add("open");
     menuButton.style.display = "none";
 
+    const tag = document.getElementById("scoreTag");
+
+    if(tag) tag.classList.remove("show");
+
 }
 
 function spielStarten(){
@@ -9117,19 +9205,27 @@ function spielStarten(){
     startScreen.classList.remove("open");
     menuButton.style.display = "block";
 
-    /* aktuellen Modus frisch aufsetzen */
+    /* FEHLER C behoben: "battle" ist kein wählbarer Modus.
+       Ohne laufendes Battle auf einen echten Modus zurück. */
 
-    changeMode(currentMode || "oneSecond");
+    let modus = currentMode || "oneSecond";
+
+    if(modus === "battle" && !activeBattle)
+        modus = "oneSecond";
+
+    changeMode(modus);
 
 }
 
 document.getElementById("btnPlay").onclick = spielStarten;
 
+/* FEHLER A behoben: Das Menü vom Startbildschirm aus
+   lässt den Startbildschirm offen – man landet nach dem
+   Schließen wieder dort statt in einem halben Spiel. */
+
 document.getElementById("btnStartMenu").onclick =
 function(){
 
-    startScreen.classList.remove("open");
-    menuButton.style.display = "block";
     oeffneHauptmenue();
 
 };
@@ -9138,6 +9234,45 @@ function(){
 /* ---------- Hauptmenü ---------- */
 
 function oeffneHauptmenue(){
+
+    /* FEHLER B behoben: einen laufenden Versuch abbrechen,
+       statt die Zeit im Hintergrund weiterlaufen zu lassen. */
+
+    if(running){
+
+        running = false;
+
+        cancelAnimationFrame(animationFrame);
+
+        timer.classList.remove("running");
+
+        showRing(false);
+
+        resultVisible = false;
+
+        timer.textContent =
+            challengeTarget > 0 &&
+            currentMode !== "normal" &&
+            currentMode !== "blind"
+            ? challengeTarget.toFixed(2)
+            : "00.00";
+
+        info.textContent =
+            "⏸️ Versuch abgebrochen – tippe zum Neustart";
+
+    }
+
+    /* Reaktionstest ebenfalls zurücksetzen */
+
+    if(
+        currentMode === "reaction" &&
+        reactionState !== "idle"
+    ){
+
+        clearTimeout(reactionTimeout);
+        resetReaction();
+
+    }
 
     const account = getCurrentAccount();
 
@@ -9175,6 +9310,14 @@ function oeffneHauptmenue(){
 function schliesseHauptmenue(){
 
     mainMenu.classList.remove("open");
+
+    /* Kam das Menü vom Startbildschirm, dorthin zurück */
+
+    if(startScreen.classList.contains("open")){
+
+        menuButton.style.display = "none";
+
+    }
 
 }
 
