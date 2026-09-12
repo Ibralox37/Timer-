@@ -354,16 +354,6 @@ button{
     display:none !important;
 }
 
-#modeMenu,
-#designMenu{
-    top:50%;
-    left:50%;
-    right:auto;
-    transform:translate(-50%,-50%);
-    width:min(92%,400px);
-    max-height:84vh;
-    z-index:4600;   /* über Startbildschirm und Hauptmenü */
-}
 
 #profileButton{
     right:18px;
@@ -377,35 +367,34 @@ button{
     padding:10px 13px;
 }
 
+/* Modus- und Design-Menü sind vollwertige Bildschirm-
+   Panels im Stil des Hauptmenüs – nicht mehr kleine
+   Klappmenüs am Rand. */
+
 #modeMenu,
 #designMenu{
     position:fixed;
-    top:68px;
-    width:250px;
-    padding:9px;
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:18px;
-    background:rgba(24,34,56,.97);
-    box-shadow:0 20px 60px rgba(0,0,0,.55);
+    inset:0;
     display:none;
-    z-index:100;
-}
-
-#modeMenu{
-    right:18px;
-    max-height:80vh;
-    overflow-y:auto;
-}
-
-#designMenu{
-    left:18px;
-    max-height:80vh;
-    overflow-y:auto;
+    align-items:center;
+    justify-content:center;
+    background:rgba(5,10,20,.8);
+    backdrop-filter:blur(7px);
+    z-index:4600;
 }
 
 #modeMenu.open,
 #designMenu.open{
-    display:block;
+    display:flex;
+}
+
+/* die eigentliche Box darin */
+
+#modeMenu > .menuBox,
+#designMenu > .menuBox{
+    width:min(92%,430px);
+    max-height:88vh;
+    overflow-y:auto;
 }
 
 .modeButton,
@@ -1620,15 +1609,11 @@ input{
     #modeButton{right:12px}
     #designButton{left:12px}
 
-    #modeMenu,
-    #designMenu{
-        top:66px;
-        width:min(88vw,290px);
-        padding:11px;
+    #modeMenu > .menuBox,
+    #designMenu > .menuBox{
+        width:min(94%,400px);
+        padding:20px 16px;
     }
-
-    #modeMenu{right:10px}
-    #designMenu{left:10px}
 
     .modeButton,
     .designChoice{
@@ -1739,8 +1724,8 @@ input{
 
     #timer{ font-size:clamp(46px,16vw,90px); }
 
-    #modeMenu,
-    #designMenu{ width:min(92vw,270px); }
+    #modeMenu > .menuBox,
+    #designMenu > .menuBox{ width:min(96%,340px); }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1861,7 +1846,7 @@ input{
 
             <button class="menuItem" id="miModes">
                 <span class="mIcon">🎮</span>
-                <span class="mName">Modi</span>
+                <span class="mName">Modus</span>
                 <span class="mHint" id="miModesHint">Spielmodus wählen</span>
             </button>
 
@@ -1960,6 +1945,10 @@ input{
 ========================= -->
 
 <div id="modeMenu">
+  <div class="menuBox">
+
+    <div class="menuHead">🎮 MODUS</div>
+    <div class="menuSub">Wähle, wie du spielen willst</div>
 
     <!-- Ebene 1: Kategorien -->
 
@@ -2048,6 +2037,12 @@ input{
 
     </div>
 
+    <button class="panelButton secondary" id="modeMenuClose"
+            style="margin-top:12px">
+        Schließen
+    </button>
+
+  </div>
 </div>
 
 <!-- =========================
@@ -2055,6 +2050,10 @@ input{
 ========================= -->
 
 <div id="designMenu">
+  <div class="menuBox">
+
+    <div class="menuHead">🎨 DESIGN</div>
+    <div class="menuSub" id="designSub">Farben & Themes</div>
 
     <button class="designChoice" data-design="blue">
         Blau
@@ -2108,7 +2107,11 @@ input{
         🟢 Matrix
     </button>
 
-    <div id="neonControl">
+    <!-- Neon und Sound stehen jetzt in den Einstellungen;
+         die Knöpfe bleiben unsichtbar erhalten, damit die
+         Beschriftung synchron bleibt. -->
+
+    <div id="neonControl" style="display:none">
 
         <button id="neonButton">
             ✨ Neon: AUS
@@ -2120,6 +2123,12 @@ input{
 
     </div>
 
+    <button class="panelButton secondary" id="designMenuClose"
+            style="margin-top:12px">
+        Schließen
+    </button>
+
+  </div>
 </div>
 
 <div id="panel">
@@ -9412,7 +9421,31 @@ function(){
 
     schliesseHauptmenue();
     refreshThemeLocks();
+
+    /* Punktestand anzeigen, damit man sieht,
+       wie weit das nächste Theme weg ist */
+
+    document.getElementById("designSub").textContent =
+        "Farben & Themes · " + getPoints() + " Punkte";
+
     designMenu.classList.add("open");
+
+};
+
+
+/* Schließen-Knöpfe der beiden Panels */
+
+document.getElementById("modeMenuClose").onclick =
+function(){
+
+    modeMenu.classList.remove("open");
+
+};
+
+document.getElementById("designMenuClose").onclick =
+function(){
+
+    designMenu.classList.remove("open");
 
 };
 
