@@ -232,6 +232,171 @@ button{
     outline:2px solid #168cff;
 }
 
+/* --- Kategorie-Kacheln (Ebene 1 im Modus-Menü) --- */
+
+#modeCats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.modeCat{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    min-height:86px;
+    padding:12px 6px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:14px;
+    background:linear-gradient(160deg,#2b3955,#1d2740);
+    color:white;
+    font-family:inherit;
+    cursor:pointer;
+    transition:transform .1s,filter .15s;
+}
+
+.modeCat:hover{ filter:brightness(1.2); }
+.modeCat:active{ transform:scale(.96); }
+
+.catIcon{ font-size:26px; line-height:1; }
+
+.catName{
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:.3px;
+}
+
+.catHint{
+    font-size:11px;
+    opacity:.6;
+}
+
+.menuTitle{
+    font-family:"Orbitron",sans-serif;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:2px;
+    opacity:.65;
+    text-align:center;
+    margin:8px 0 4px;
+}
+
+.backButton{
+    background:#1b2436 !important;
+    opacity:.9;
+}
+
+/* --- Streak-Anzeige im Spiel --- */
+
+#streakBox{
+    position:fixed;
+    top:74px;
+    left:50%;
+    transform:translateX(-50%) scale(.8);
+    z-index:45;
+    padding:7px 16px;
+    border-radius:20px;
+    background:linear-gradient(90deg,#ff6a00,#ff2d55);
+    box-shadow:0 6px 22px rgba(255,80,0,.45);
+    font-family:"Orbitron",sans-serif;
+    font-weight:700;
+    font-size:16px;
+    white-space:nowrap;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s,transform .25s;
+}
+
+#streakBox.show{
+    opacity:1;
+    transform:translateX(-50%) scale(1);
+}
+
+#streakBox.pop{
+    animation:streakPop .45s ease;
+}
+
+@keyframes streakPop{
+    0%{ transform:translateX(-50%) scale(1); }
+    45%{ transform:translateX(-50%) scale(1.28); }
+    100%{ transform:translateX(-50%) scale(1); }
+}
+
+/* --- PERFECT!-Einblendung --- */
+
+#perfectBanner{
+    position:fixed;
+    top:38%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(.4);
+    z-index:900;
+    font-family:"Orbitron",sans-serif;
+    font-size:clamp(34px,9vw,74px);
+    font-weight:900;
+    letter-spacing:3px;
+    color:#fff;
+    text-shadow:
+        0 0 14px #00d4ff,
+        0 0 34px #0088ff,
+        0 0 70px #0055ff;
+    opacity:0;
+    pointer-events:none;
+}
+
+#perfectBanner.go{
+    animation:perfectBannerIn 1.15s cubic-bezier(.15,1.4,.4,1) forwards;
+}
+
+@keyframes perfectBannerIn{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(.4) rotate(-8deg); }
+    22%{ opacity:1; transform:translate(-50%,-50%) scale(1.15) rotate(2deg); }
+    38%{ transform:translate(-50%,-50%) scale(1) rotate(0deg); }
+    75%{ opacity:1; transform:translate(-50%,-58%) scale(1); }
+    100%{ opacity:0; transform:translate(-50%,-78%) scale(.92); }
+}
+
+/* aufsteigende Punkte-Zahl */
+
+#pointsPop{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    z-index:890;
+    font-family:"Orbitron",sans-serif;
+    font-size:clamp(20px,5vw,34px);
+    font-weight:700;
+    color:#ffd24a;
+    text-shadow:0 0 16px rgba(255,210,74,.8);
+    opacity:0;
+    pointer-events:none;
+}
+
+#pointsPop.go{
+    animation:pointsUp 1.1s ease-out forwards;
+}
+
+@keyframes pointsUp{
+    0%{ opacity:0; transform:translate(-50%,-30%) scale(.7); }
+    25%{ opacity:1; transform:translate(-50%,-60%) scale(1.1); }
+    100%{ opacity:0; transform:translate(-50%,-130%) scale(1); }
+}
+
+/* --- Gesperrte Themes --- */
+
+.designChoice.locked{
+    opacity:.45;
+    cursor:not-allowed;
+}
+
+.designChoice .lockInfo{
+    float:right;
+    font-size:12px;
+    opacity:.8;
+}
+
 .designChoice.active{
     outline:2px solid white;
 }
@@ -635,12 +800,119 @@ input{
     color:white;
 }
 
+/* Startscreen: Logo fliegt aus der Tiefe herein,
+   danach sanftes Schweben */
+
 #kronix-dvd{
     position:absolute;
-    left:5%;
-    top:5%;
+    left:50%;
+    top:42%;
+    transform:translate(-50%,-50%);
     text-align:center;
-    animation:dvdMove 8s linear infinite;
+    animation:
+        logoEntry 1.1s cubic-bezier(.15,1.3,.35,1) both,
+        logoFloat 3.2s ease-in-out 1.1s infinite;
+}
+
+@keyframes logoEntry{
+    0%{
+        opacity:0;
+        transform:translate(-50%,-50%) scale(.35) rotate(-12deg);
+        filter:blur(14px);
+    }
+    60%{
+        opacity:1;
+        filter:blur(0);
+    }
+    100%{
+        opacity:1;
+        transform:translate(-50%,-50%) scale(1) rotate(0deg);
+        filter:blur(0);
+    }
+}
+
+@keyframes logoFloat{
+    0%,100%{ transform:translate(-50%,-50%) scale(1); }
+    50%{ transform:translate(-50%,-52%) scale(1.03); }
+}
+
+/* Lichtstrahl, der einmal über das Logo wischt */
+
+#kronix-shine{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:linear-gradient(
+        105deg,
+        transparent 35%,
+        rgba(255,255,255,.16) 48%,
+        rgba(120,200,255,.28) 50%,
+        rgba(255,255,255,.16) 52%,
+        transparent 65%);
+    transform:translateX(-100%);
+    animation:shineSweep 1.5s ease-in-out .75s 1 both;
+}
+
+@keyframes shineSweep{
+    0%{ transform:translateX(-100%); }
+    100%{ transform:translateX(100%); }
+}
+
+/* "WE CREATE GAMES" erscheint Buchstabe für Buchstabe */
+
+#kronix-claim{
+    position:absolute;
+    left:50%;
+    top:62%;
+    transform:translateX(-50%);
+    font-family:"Orbitron",sans-serif;
+    font-size:clamp(11px,2.6vw,16px);
+    font-weight:700;
+    letter-spacing:.55em;
+    white-space:nowrap;
+    color:#7fd4ff;
+    text-shadow:0 0 12px rgba(0,170,255,.8);
+    opacity:0;
+    animation:claimIn .9s ease-out 1.15s both;
+}
+
+@keyframes claimIn{
+    0%{ opacity:0; letter-spacing:.2em; filter:blur(6px); }
+    100%{ opacity:1; letter-spacing:.55em; filter:blur(0); }
+}
+
+/* Ladebalken statt nackter Prozentzahl */
+
+#kronix-progress{
+    position:absolute;
+    bottom:96px;
+    left:50%;
+    transform:translateX(-50%);
+    width:min(70%,360px);
+    height:6px;
+    border-radius:4px;
+    background:rgba(255,255,255,.12);
+    overflow:hidden;
+}
+
+#kronix-progress-fill{
+    height:100%;
+    width:0%;
+    border-radius:4px;
+    background:linear-gradient(90deg,#0055ff,#00d4ff);
+    box-shadow:0 0 14px rgba(0,170,255,.8);
+    transition:width .12s linear;
+}
+
+/* Ausblenden des ganzen Startscreens */
+
+#kronix-loading.fadeOut{
+    animation:screenOut .55s ease-in forwards;
+}
+
+@keyframes screenOut{
+    0%{ opacity:1; transform:scale(1); }
+    100%{ opacity:0; transform:scale(1.08); }
 }
 
 .kronix-logo{
@@ -699,10 +971,14 @@ input{
 
 @media(max-width:600px){
 
+    /* Handy: alles groesser antippbar (min. 48 px hoch) */
+
     #modeButton,
     #designButton{
         top:12px;
-        padding:11px 13px;
+        padding:14px 16px;
+        font-size:15px;
+        min-height:48px;
     }
 
     #modeButton{right:12px}
@@ -710,31 +986,95 @@ input{
 
     #modeMenu,
     #designMenu{
-        top:60px;
-        width:225px;
+        top:66px;
+        width:min(88vw,290px);
+        padding:11px;
     }
 
-    #modeMenu{right:12px}
-    #designMenu{left:12px}
+    #modeMenu{right:10px}
+    #designMenu{left:10px}
 
-    #profileButton{
-        right:12px;
-        top:62px;
+    .modeButton,
+    .designChoice{
+        min-height:52px;
+        padding:15px 14px;
+        font-size:16px;
+        margin:6px 0;
     }
 
+    .modeCat{
+        min-height:96px;
+    }
+
+    .catIcon{ font-size:30px; }
+    .catName{ font-size:16px; }
+
+    #profileButton,
     #rankingButton{
         right:12px;
-        top:112px;
+        min-width:52px;
+        min-height:52px;
+        padding:13px;
+        font-size:16px;
     }
 
+    #profileButton{ top:74px; }
+    #rankingButton{ top:136px; }
+
+    #shareButton,
+    #friendsButton{
+        min-height:52px;
+        padding:14px 16px;
+        font-size:15px;
+        bottom:14px;
+    }
+
+    #shareButton{ left:12px; }
+    #friendsButton{ right:12px; }
+
     #info{
-        top:72px;
-        font-size:14px;
+        top:74px;
+        font-size:15px;
+        width:86%;
+    }
+
+    #streakBox{
+        top:118px;
+        font-size:15px;
     }
 
     #panel{
-        padding:21px;
+        padding:20px;
+        width:min(94%,440px);
     }
+
+    .panelButton{
+        min-height:52px;
+        font-size:16px;
+    }
+
+    .miniButton{
+        min-height:42px;
+        padding:9px 13px;
+        font-size:14px;
+    }
+
+    input{
+        min-height:50px;
+        font-size:17px;
+    }
+
+    .statGrid{ gap:7px; }
+}
+
+/* Sehr kleine Handys: Timer nicht zu gross */
+
+@media(max-width:380px){
+
+    #timer{ font-size:clamp(46px,16vw,90px); }
+
+    #modeMenu,
+    #designMenu{ width:min(92vw,270px); }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -837,45 +1177,92 @@ input{
 
 <div id="modeMenu">
 
-    <button class="modeButton" data-mode="normal">
-        ⏱️ Normalmodus
-    </button>
+    <!-- Ebene 1: Kategorien -->
 
-    <button class="modeButton" data-mode="blind">
-        🕶️ Blindmodus
-    </button>
+    <div id="modeCats">
 
-    <button class="modeButton" data-mode="challenge">
-        🎯 Challenge
-    </button>
+        <button class="modeCat" data-cat="timer">
+            <span class="catIcon">⏱️</span>
+            <span class="catName">Timer</span>
+            <span class="catHint">Frei stoppen</span>
+        </button>
 
-    <button class="modeButton" data-mode="challengeBlind">
-        🎯🕶️ Challenge Blind
-    </button>
+        <button class="modeCat" data-cat="challenge">
+            <span class="catIcon">🎯</span>
+            <span class="catName">Challenge</span>
+            <span class="catHint">Ziel treffen</span>
+        </button>
 
-    <button class="modeButton" data-mode="oneSecond">
-        🎯 Stoppe bei 1,00
-    </button>
+        <button class="modeCat" data-cat="skill">
+            <span class="catIcon">⚡</span>
+            <span class="catName">Skill</span>
+            <span class="catHint">Reaktion & Survival</span>
+        </button>
 
-    <button class="modeButton" data-mode="fiveSecond">
-        🎯 Stoppe bei 5,00
-    </button>
+        <button class="modeCat" data-cat="friends">
+            <span class="catIcon">👥</span>
+            <span class="catName">Freunde</span>
+            <span class="catHint">Zusammen spielen</span>
+        </button>
 
-    <button class="modeButton" data-mode="tenSecond">
-        🎯 Stoppe bei 10,00
-    </button>
+    </div>
 
-    <button class="modeButton" data-mode="reaction">
-        ⚡ Reaktionstest
-    </button>
+    <!-- Ebene 2: Modi der gewählten Kategorie -->
 
-    <button class="modeButton" data-mode="survival">
-        🔥 Survival
-    </button>
+    <div id="modeList" style="display:none">
 
-    <button class="modeButton" data-mode="friends">
-        👥 Freunde
-    </button>
+        <button id="modeBack" class="modeButton backButton">
+            ← Zurück
+        </button>
+
+        <div id="modeListTitle" class="menuTitle"></div>
+
+        <div data-group="timer" style="display:none">
+            <button class="modeButton" data-mode="normal">
+                ⏱️ Normalmodus
+            </button>
+            <button class="modeButton" data-mode="blind">
+                🕶️ Blindmodus
+            </button>
+        </div>
+
+        <div data-group="challenge" style="display:none">
+            <button class="modeButton" data-mode="challenge">
+                🎯 Challenge
+            </button>
+            <button class="modeButton" data-mode="challengeBlind">
+                🎯🕶️ Challenge Blind
+            </button>
+            <button class="modeButton" data-mode="oneSecond">
+                🎯 Stoppe bei 1,00
+            </button>
+            <button class="modeButton" data-mode="fiveSecond">
+                🎯 Stoppe bei 5,00
+            </button>
+            <button class="modeButton" data-mode="tenSecond">
+                🎯 Stoppe bei 10,00
+            </button>
+        </div>
+
+        <div data-group="skill" style="display:none">
+            <button class="modeButton" data-mode="reaction">
+                ⚡ Reaktionstest
+            </button>
+            <button class="modeButton" data-mode="survival">
+                🔥 Survival
+            </button>
+        </div>
+
+        <div data-group="friends" style="display:none">
+            <button class="modeButton" data-mode="friends">
+                👥 Freunde am Gerät
+            </button>
+            <button class="modeButton" id="menuOnlineFriends">
+                🌐 Online-Battle
+            </button>
+        </div>
+
+    </div>
 
 </div>
 
@@ -968,6 +1355,12 @@ input{
     <div class="toastText" id="toastText"></div>
 </div>
 
+<div id="streakBox">🔥 <span id="streakCount">0</span>er-Streak!</div>
+
+<div id="perfectBanner">PERFECT!</div>
+
+<div id="pointsPop"></div>
+
 <button id="shareButton">
     📤 Herausfordern
 </button>
@@ -993,16 +1386,16 @@ input{
 
     </div>
 
-    <div class="kronix-loading-text">
+    <div id="kronix-claim">WE CREATE GAMES</div>
 
-        <span id="kronix-percent">
-            0
-        </span>%
+    <div id="kronix-shine"></div>
 
+    <div id="kronix-progress">
+        <div id="kronix-progress-fill"></div>
     </div>
 
     <div class="kronix-status">
-        LÄDT...
+        <span id="kronix-percent">0</span>%
     </div>
 
 </div>
@@ -1743,7 +2136,11 @@ function(){
                 ? "Gast"
                 : currentUser
             )}
-            <span class="levelChip">LVL ${levelInfo(account.perfects).level}</span>
+            <span class="levelChip" style="background:linear-gradient(90deg,${levelInfo(account.perfects).rangFarbe},#0088ff)">
+                ${levelInfo(account.perfects).rangIcon}
+                ${levelInfo(account.perfects).rang}
+                ${levelInfo(account.perfects).level}
+            </span>
         </h3>
 
         <div class="levelBar">
@@ -1751,17 +2148,50 @@ function(){
         </div>
         <p class="smallText">
             Noch ${levelInfo(account.perfects).need - levelInfo(account.perfects).rest}
-            Treffer bis Level ${levelInfo(account.perfects).level + 1}
+            Treffer bis Level ${levelInfo(account.perfects).level + 1}${
+                nextRank(levelInfo(account.perfects).level)
+                ? " &nbsp;·&nbsp; " +
+                  (nextRank(levelInfo(account.perfects).level).ab -
+                   levelInfo(account.perfects).level) +
+                  " Level bis " +
+                  nextRank(levelInfo(account.perfects).level).icon + " " +
+                  nextRank(levelInfo(account.perfects).level).name
+                : " &nbsp;·&nbsp; Höchster Rang erreicht!"
+            }
         </p>
 
         <div class="statGrid">
+            <div class="statCard">
+                <div class="val">${getPoints()}</div>
+                <div class="lbl">⭐ Punkte</div>
+            </div>
+            <div class="statCard">
+                <div class="val">${getStats().runden}</div>
+                <div class="lbl">Gespielte Runden</div>
+            </div>
             <div class="statCard">
                 <div class="val">${account.perfects || 0}</div>
                 <div class="lbl">Perfekte Treffer</div>
             </div>
             <div class="statCard">
-                <div class="val">${getBestStreak()}</div>
-                <div class="lbl">Beste Serie</div>
+                <div class="val">${
+                    durchschnittGenauigkeit() !== null
+                    ? durchschnittGenauigkeit().toFixed(1).replace(".", ",") + " %"
+                    : "–"
+                }</div>
+                <div class="lbl">Ø Genauigkeit</div>
+            </div>
+            <div class="statCard">
+                <div class="val">${
+                    getStats().besteAbweichung !== null
+                    ? getStats().besteAbweichung + " ms"
+                    : "–"
+                }</div>
+                <div class="lbl">Beste Zeit (Abstand)</div>
+            </div>
+            <div class="statCard">
+                <div class="val">${Math.max(getBestStreak(), getStats().laengsteStreak)}</div>
+                <div class="lbl">🔥 Längste Streak</div>
             </div>
             <div class="statCard">
                 <div class="val">${
@@ -3526,6 +3956,16 @@ function finishSurvival(actual){
                 ) / 100
             );
 
+        /* je weiter, desto mehr Punkte */
+
+        trackRound(null, Math.round(difference * 1000));
+
+        addPoints(5 + survivalRound * 2);
+
+        showPoints(5 + survivalRound * 2);
+        showStreak(survivalRound);
+        bumpLongestStreak(survivalRound);
+
         info.textContent =
             "✅ Runde " +
             survivalRound +
@@ -3535,6 +3975,7 @@ function finishSurvival(actual){
         if(difference < 0.005){
 
             celebratePerfectAnimation();
+            showPerfectBanner("PERFECT!");
 
         }
 
@@ -3542,6 +3983,9 @@ function finishSurvival(actual){
 
         const runden =
             survivalRound;
+
+        hideStreak();
+        trackRound(null, null);
 
         soundFail();
 
@@ -3745,6 +4189,23 @@ function handleReactionTap(eventTime){
 
         }
 
+        /* Statistik + Punkte je nach Tempo */
+
+        const s = getStats();
+        s.runden++;
+        if(
+            s.besteReaktion === null ||
+            ms < s.besteReaktion
+        ){
+            s.besteReaktion = ms;
+        }
+        saveStats(s);
+
+        addPoints(
+            ms < 200 ? 25 :
+            ms < 300 ? 12 : 5
+        );
+
         submitBest(
             "reaction",
             ms
@@ -3819,6 +4280,16 @@ function finishTarget(
         );
 
 
+    /* Runde und Genauigkeit in die Statistik */
+
+    const abweichungMs =
+        Math.round(
+            Math.abs(actual - challengeTarget) * 1000
+        );
+
+    trackRound(accuracy, abweichungMs);
+
+
     if(
         isPerfectTarget(
             actual,
@@ -3829,6 +4300,14 @@ function finishTarget(
         perfectStreak++;
 
         bumpStreak(perfectStreak);
+        bumpLongestStreak(perfectStreak);
+
+        /* Punkte: Grundwert + Streak-Bonus */
+
+        const punkte =
+            10 + Math.min(perfectStreak - 1, 10) * 5;
+
+        addPoints(punkte);
 
         info.textContent =
             "🔥 PERFEKT! 100%" +
@@ -3840,10 +4319,32 @@ function finishTarget(
 
         celebratePerfect();
 
+        showPerfectBanner(
+            perfectStreak >= 5
+            ? "PERFECT x" + perfectStreak + "!"
+            : "PERFECT!"
+        );
+
+        showPoints(punkte);
+        showStreak(perfectStreak);
+
     }else{
 
         perfectStreak =
             0;
+
+        hideStreak();
+
+        /* Punkte auch für gute Versuche */
+
+        if(accuracy >= 90){
+
+            addPoints(
+                accuracy >= 99 ? 5 :
+                accuracy >= 95 ? 3 : 1
+            );
+
+        }
 
         info.textContent =
             "Gestoppt bei " +
@@ -4096,6 +4597,8 @@ document
 .forEach(
     function(button){
 
+        if(!button.dataset.mode)return;
+
         button.addEventListener(
             "pointerup",
             function(e){
@@ -4110,6 +4613,120 @@ document
 
             }
         );
+
+    }
+);
+
+
+/* =====================================================
+   MODUS-MENÜ: zwei Ebenen
+   Ebene 1 Kategorien, Ebene 2 die Modi darin
+===================================================== */
+
+const modeCats =
+    document.getElementById("modeCats");
+
+const modeList =
+    document.getElementById("modeList");
+
+const modeListTitle =
+    document.getElementById("modeListTitle");
+
+const CAT_TITLES = {
+    timer: "⏱️ TIMER",
+    challenge: "🎯 CHALLENGE",
+    skill: "⚡ SKILL",
+    friends: "👥 FREUNDE"
+};
+
+function showModeCats(){
+
+    modeCats.style.display = "grid";
+    modeList.style.display = "none";
+
+}
+
+function showModeGroup(cat){
+
+    modeCats.style.display = "none";
+    modeList.style.display = "block";
+
+    modeListTitle.textContent =
+        CAT_TITLES[cat] || "";
+
+    modeList
+    .querySelectorAll("[data-group]")
+    .forEach(function(g){
+
+        g.style.display =
+            g.dataset.group === cat
+            ? "block"
+            : "none";
+
+    });
+
+}
+
+document
+.querySelectorAll(".modeCat")
+.forEach(function(btn){
+
+    btn.addEventListener(
+        "pointerup",
+        function(e){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            playTone(520, 0.06, "sine", 0.06);
+
+            showModeGroup(btn.dataset.cat);
+
+        }
+    );
+
+});
+
+document.getElementById("modeBack")
+.addEventListener(
+    "pointerup",
+    function(e){
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        showModeCats();
+
+    }
+);
+
+/* Online-Battle direkt aus dem Freunde-Bereich */
+
+document.getElementById("menuOnlineFriends")
+.addEventListener(
+    "pointerup",
+    function(e){
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        modeMenu.classList.remove("open");
+
+        if(
+            typeof openFriendsPanel === "function" &&
+            isOnline() && !isGuest && currentUserId
+        ){
+
+            openFriendsPanel();
+
+        }else{
+
+            showToast(
+                "🌐 Online-Battle",
+                "Dafür brauchst du ein Konto – melde dich an!"
+            );
+
+        }
 
     }
 );
@@ -4508,9 +5125,17 @@ modeButton.addEventListener(
 
         e.stopPropagation();
 
+        const warOffen =
+            modeMenu.classList.contains("open");
+
         modeMenu.classList.toggle(
             "open"
         );
+
+        /* beim Öffnen immer mit den Kategorien starten */
+
+        if(!warOffen)
+            showModeCats();
 
         designMenu.classList.remove(
             "open"
@@ -4760,13 +5385,38 @@ document
 
                 e.stopPropagation();
 
-                currentDesign =
+                const name =
                     button.dataset.design;
+
+                /* gesperrtes Theme? */
+
+                if(!themeUnlocked(name)){
+
+                    const noetig =
+                        THEME_UNLOCKS[name] || 0;
+
+                    soundFail();
+
+                    showToast(
+                        "🔒 Noch gesperrt",
+                        (THEME_NAMES[name] || name) +
+                        " braucht " + noetig +
+                        " Punkte – du hast " +
+                        getPoints() + "."
+                    );
+
+                    return;
+
+                }
+
+                currentDesign = name;
 
                 localStorage.setItem(
                     "kronixDesign",
                     currentDesign
                 );
+
+                playTone(700, 0.08, "sine", 0.08);
 
                 applyDesign();
 
@@ -5036,9 +5686,8 @@ neonButton.textContent =
 
 applyDesign();
 
-initAccount();
-
-updateRankingButton();
+/* initAccount() läuft ganz am Ende des Skripts,
+   damit Ränge und Themes schon definiert sind. */
 
 
 /* =====================================================
@@ -5059,12 +5708,30 @@ const kronixLoading =
     );
 
 
+const kronixFill =
+    document.getElementById(
+        "kronix-progress-fill"
+    );
+
+/* Startsound zum Logo-Einflug (nur wenn Sound an) */
+
+setTimeout(
+    function(){
+
+        playTone(330, 0.5, "sine", 0.07);
+        playTone(495, 0.5, "sine", 0.06, 0.08);
+        playTone(660, 0.7, "sine", 0.07, 0.16);
+
+    },
+    150
+);
+
 const kronixInterval =
     setInterval(
         function(){
 
             kronixProgress +=
-                1;
+                2;
 
 
             if(
@@ -5083,12 +5750,9 @@ const kronixInterval =
                 setTimeout(
                     function(){
 
-                        kronixLoading.style.transition =
-                            "opacity .6s";
-
-                        kronixLoading.style.opacity =
-                            "0";
-
+                        kronixLoading.classList.add(
+                            "fadeOut"
+                        );
 
                         setTimeout(
                             function(){
@@ -5096,11 +5760,11 @@ const kronixInterval =
                                 kronixLoading.remove();
 
                             },
-                            600
+                            550
                         );
 
                     },
-                    300
+                    450
                 );
 
             }
@@ -5109,8 +5773,12 @@ const kronixInterval =
             kronixPercent.textContent =
                 kronixProgress;
 
+            if(kronixFill)
+                kronixFill.style.width =
+                    kronixProgress + "%";
+
         },
-        10
+        22
     );
 
 
@@ -5135,12 +5803,275 @@ function levelInfo(perfects){
 
     }
 
+    const rang = rankInfo(level);
+
     return {
         level: level,
         rest: rest,
         need: need,
-        prozent: Math.round(rest / need * 100)
+        prozent: Math.round(rest / need * 100),
+        rang: rang.name,
+        rangIcon: rang.icon,
+        rangFarbe: rang.farbe
     };
+
+}
+
+
+/* Ränge: Bronze → Silber → Gold → Platin → Diamant → KRONIX */
+
+const RANKS = [
+    { ab: 1,  name:"Bronze",  icon:"🥉", farbe:"#cd7f32" },
+    { ab: 5,  name:"Silber",  icon:"🥈", farbe:"#c0c0c0" },
+    { ab: 10, name:"Gold",    icon:"🥇", farbe:"#ffd24a" },
+    { ab: 18, name:"Platin",  icon:"💠", farbe:"#7fe3ff" },
+    { ab: 28, name:"Diamant", icon:"💎", farbe:"#b06bff" },
+    { ab: 40, name:"KRONIX",  icon:"👑", farbe:"#00d4ff" }
+];
+
+function rankInfo(level){
+
+    let treffer = RANKS[0];
+
+    RANKS.forEach(function(r){
+
+        if(level >= r.ab)
+            treffer = r;
+
+    });
+
+    return treffer;
+
+}
+
+/* nächster Rang, für die Anzeige „noch X Level bis …" */
+
+function nextRank(level){
+
+    for(let i = 0; i < RANKS.length; i++){
+
+        if(level < RANKS[i].ab)
+            return RANKS[i];
+
+    }
+
+    return null;
+
+}
+
+
+/* =====================================================
+   SPIEL-STATISTIK (lokal, geraetebezogen)
+   Runden, Genauigkeitssumme, beste Zeit, laengste Streak
+===================================================== */
+
+function getStats(){
+
+    try{
+
+        const s =
+            JSON.parse(
+                localStorage.getItem("kronixStats") || "{}"
+            );
+
+        return {
+            runden: s.runden || 0,
+            genauSumme: s.genauSumme || 0,
+            genauAnzahl: s.genauAnzahl || 0,
+            besteAbweichung:
+                s.besteAbweichung === undefined
+                ? null
+                : s.besteAbweichung,
+            besteReaktion:
+                s.besteReaktion === undefined
+                ? null
+                : s.besteReaktion,
+            laengsteStreak: s.laengsteStreak || 0,
+            punkte: s.punkte || 0
+        };
+
+    }catch{
+
+        return {
+            runden:0, genauSumme:0, genauAnzahl:0,
+            besteAbweichung:null, besteReaktion:null,
+            laengsteStreak:0, punkte:0
+        };
+
+    }
+}
+
+function saveStats(s){
+
+    localStorage.setItem(
+        "kronixStats",
+        JSON.stringify(s)
+    );
+
+}
+
+/* eine gespielte Runde verbuchen */
+
+function trackRound(accuracy, abweichungMs){
+
+    const s = getStats();
+
+    s.runden++;
+
+    if(typeof accuracy === "number"){
+
+        s.genauSumme += accuracy;
+        s.genauAnzahl++;
+
+    }
+
+    if(
+        typeof abweichungMs === "number" &&
+        (s.besteAbweichung === null ||
+         abweichungMs < s.besteAbweichung)
+    ){
+
+        s.besteAbweichung = abweichungMs;
+
+    }
+
+    saveStats(s);
+
+}
+
+/* Punkte vergeben (schaltet Themes frei) */
+
+function addPoints(anzahl){
+
+    const s = getStats();
+
+    s.punkte += anzahl;
+
+    saveStats(s);
+
+    checkThemeUnlocks(s.punkte);
+
+    return s.punkte;
+
+}
+
+function getPoints(){
+
+    return getStats().punkte;
+
+}
+
+function durchschnittGenauigkeit(){
+
+    const s = getStats();
+
+    if(s.genauAnzahl === 0)return null;
+
+    return Math.round(
+        s.genauSumme / s.genauAnzahl * 100
+    ) / 100;
+
+}
+
+
+/* =====================================================
+   STREAK-ANZEIGE
+===================================================== */
+
+const streakBox =
+    document.getElementById("streakBox");
+
+const streakCountEl =
+    document.getElementById("streakCount");
+
+let streakHideTimer = null;
+
+function showStreak(anzahl){
+
+    if(anzahl < 2){
+
+        hideStreak();
+
+        return;
+
+    }
+
+    streakCountEl.textContent = anzahl;
+    streakBox.classList.add("show");
+
+    streakBox.classList.remove("pop");
+    void streakBox.offsetWidth;
+    streakBox.classList.add("pop");
+
+    /* Meilenstein-Streaks extra feiern */
+
+    if(anzahl === 5 || anzahl === 10 || anzahl % 25 === 0){
+
+        showToast(
+            "🔥 " + anzahl + "er-Streak!",
+            anzahl >= 10
+            ? "Unglaublich! Weiter so!"
+            : "Du bist in Form!"
+        );
+
+    }
+
+    clearTimeout(streakHideTimer);
+
+    streakHideTimer =
+        setTimeout(hideStreak, 6000);
+
+}
+
+function hideStreak(){
+
+    streakBox.classList.remove("show");
+
+}
+
+/* längste Streak merken */
+
+function bumpLongestStreak(current){
+
+    const s = getStats();
+
+    if(current > s.laengsteStreak){
+
+        s.laengsteStreak = current;
+        saveStats(s);
+
+    }
+}
+
+
+/* =====================================================
+   TREFFER-EFFEKTE (PERFECT! + Punkte)
+===================================================== */
+
+const perfectBanner =
+    document.getElementById("perfectBanner");
+
+const pointsPop =
+    document.getElementById("pointsPop");
+
+function showPerfectBanner(text){
+
+    perfectBanner.textContent =
+        text || "PERFECT!";
+
+    perfectBanner.classList.remove("go");
+    void perfectBanner.offsetWidth;
+    perfectBanner.classList.add("go");
+
+}
+
+function showPoints(anzahl){
+
+    pointsPop.textContent = "+" + anzahl;
+
+    pointsPop.classList.remove("go");
+    void pointsPop.offsetWidth;
+    pointsPop.classList.add("go");
 
 }
 
@@ -5194,6 +6125,135 @@ function nextToast(){
             setTimeout(nextToast, 450);
 
         }, 2800);
+
+}
+
+
+/* =====================================================
+   THEMES FREISCHALTEN
+   Punkte sammeln = neue Designs
+===================================================== */
+
+const THEME_UNLOCKS = {
+    blue: 0,
+    blueWhite: 0,
+    blueBlack: 0,
+    blackWhite: 0,
+    kronixBlue: 0,
+    whiteBlackBlue: 0,
+    ice: 100,
+    sunset: 100,
+    toxic: 250,
+    purple: 250,
+    crimson: 500,
+    matrix: 500,
+    gold: 1000
+};
+
+const THEME_NAMES = {
+    ice: "❄️ Ice",
+    sunset: "🌅 Sunset",
+    toxic: "☢️ Toxic",
+    purple: "🔮 Purpur",
+    crimson: "🔥 Crimson",
+    matrix: "🟢 Matrix",
+    gold: "👑 Gold"
+};
+
+function themeUnlocked(name){
+
+    const noetig = THEME_UNLOCKS[name] || 0;
+
+    return getPoints() >= noetig;
+
+}
+
+/* Design-Menü mit Schlössern zeichnen */
+
+function refreshThemeLocks(){
+
+    const punkte = getPoints();
+
+    document
+    .querySelectorAll(".designChoice")
+    .forEach(function(btn){
+
+        const name = btn.dataset.design;
+        const noetig = THEME_UNLOCKS[name] || 0;
+
+        /* alten Zusatz entfernen */
+
+        const alt = btn.querySelector(".lockInfo");
+        if(alt) alt.remove();
+
+        if(punkte >= noetig){
+
+            btn.classList.remove("locked");
+
+        }else{
+
+            btn.classList.add("locked");
+
+            const span = document.createElement("span");
+            span.className = "lockInfo";
+            span.textContent = "🔒 " + noetig;
+            btn.appendChild(span);
+
+        }
+
+    });
+
+}
+
+/* nach Punktezuwachs prüfen, ob etwas aufgeht */
+
+function checkThemeUnlocks(punkte){
+
+    let bekannt;
+
+    try{
+
+        bekannt =
+            new Set(
+                JSON.parse(
+                    localStorage.getItem("kronixThemes") || "[]"
+                )
+            );
+
+    }catch{
+
+        bekannt = new Set();
+
+    }
+
+    Object.keys(THEME_UNLOCKS).forEach(function(name){
+
+        const noetig = THEME_UNLOCKS[name];
+
+        if(
+            noetig > 0 &&
+            punkte >= noetig &&
+            !bekannt.has(name)
+        ){
+
+            bekannt.add(name);
+
+            showToast(
+                "🎨 Neues Theme!",
+                (THEME_NAMES[name] || name) +
+                " freigeschaltet (" + noetig + " Punkte)"
+            );
+
+        }
+
+    });
+
+    localStorage.setItem(
+        "kronixThemes",
+        JSON.stringify(Array.from(bekannt))
+    );
+
+    refreshThemeLocks();
 
 }
 
@@ -5361,14 +6421,17 @@ async function showLevelRanking(){
             index === 1 ? "🥈 " :
             index === 2 ? "🥉 " : "";
 
+        const rang = rankInfo(lvl);
+
         html +=
             '<div class="rankRow"' + markieren + '>' +
             '<div class="rankNumber">' + krone + (index + 1) + '.</div>' +
             '<img class="rankAvatar" src="' +
             (p.image || DEFAULT_AVATAR_SMALL) + '">' +
             '<div class="rankName">' + escapeHTML(p.username) + '</div>' +
-            '<div class="rankScore"><span class="levelChip">LVL ' +
-            lvl + '</span></div></div>';
+            '<div class="rankScore"><span class="levelChip" ' +
+            'style="background:linear-gradient(90deg,' + rang.farbe + ',#0088ff)">' +
+            rang.icon + ' ' + lvl + '</span></div></div>';
 
     });
 
@@ -5395,10 +6458,29 @@ function checkLevelUp(){
 
     if(lastLevelSeen !== null && info.level > lastLevelSeen){
 
-        showToast(
-            "🆙 Level " + info.level + "!",
-            "Du bist aufgestiegen!"
-        );
+        const alterRang = rankInfo(lastLevelSeen);
+        const neuerRang = rankInfo(info.level);
+
+        if(neuerRang.name !== alterRang.name){
+
+            /* Rang-Aufstieg ist das größere Ereignis */
+
+            showToast(
+                neuerRang.icon + " " + neuerRang.name + "-Rang!",
+                "Level " + info.level + " erreicht – neuer Rang!"
+            );
+
+            showPerfectBanner(neuerRang.name.toUpperCase() + "!");
+            startConfetti();
+
+        }else{
+
+            showToast(
+                "🆙 Level " + info.level + "!",
+                "Du bist aufgestiegen!"
+            );
+
+        }
 
         flashScreen("#00aaff");
 
@@ -6195,6 +7277,33 @@ if("serviceWorker" in navigator){
         });
 
 }
+
+
+/* =====================================================
+   SPÄTER START
+   Läuft ganz am Ende, damit alle Konstanten
+   (Themes, Ränge) schon geladen sind.
+===================================================== */
+
+/* gesperrtes Design gespeichert? Dann zurück auf Standard */
+
+if(!themeUnlocked(currentDesign)){
+
+    currentDesign = "kronixBlue";
+
+    localStorage.setItem("kronixDesign", currentDesign);
+
+    applyDesign();
+
+}
+
+refreshThemeLocks();
+
+showModeCats();
+
+initAccount();
+
+updateRankingButton();
 
 </script>
 
