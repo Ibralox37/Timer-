@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ibralox37.github.io/Timer-/sitemap.xml

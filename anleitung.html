@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<!-- ==========================================================
+     Timer Challenge – Spielanleitung
+     © 2026 Ibralox37 / KRONIX – WE CREATE GAMES
+========================================================== -->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Timer Challenge – Anleitung & Spielmodi | KRONIX</title>
+<meta name="description" content="Anleitung zu Timer Challenge: Stoppe den Timer exakt auf die Zielzeit. Alle Spielmodi erklärt – Challenge, Blindmodus, Reaktionstest, Survival, Online-Battle gegen Freunde. Kostenlos im Browser spielen.">
+<link rel="canonical" href="https://ibralox37.github.io/Timer-/anleitung.html">
+<link rel="icon" type="image/png" href="kronix-favicon.png">
+<meta name="theme-color" content="#07101c">
+
+<meta property="og:title" content="Timer Challenge – Anleitung & Spielmodi">
+<meta property="og:description" content="Alle Spielmodi von Timer Challenge erklärt: Challenge, Blind, Reaktionstest, Survival und Online-Battles.">
+<meta property="og:image" content="https://ibralox37.github.io/Timer-/icon-512.png">
+<meta property="og:url" content="https://ibralox37.github.io/Timer-/anleitung.html">
+<meta property="og:type" content="article">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Timer Challenge spielen",
+  "description": "So spielst du Timer Challenge: Timer starten, im richtigen Moment stoppen und die Zielzeit exakt treffen.",
+  "inLanguage": "de",
+  "step": [
+    { "@type": "HowToStep", "name": "Modus wählen", "text": "Wähle oben rechts eine Kategorie: Timer, Challenge, Skill oder Freunde." },
+    { "@type": "HowToStep", "name": "Timer starten", "text": "Tippe oder klicke auf den Bildschirm, um den Timer zu starten." },
+    { "@type": "HowToStep", "name": "Exakt stoppen", "text": "Tippe erneut genau dann, wenn die Zielzeit erreicht ist." },
+    { "@type": "HowToStep", "name": "Punkte sammeln", "text": "Perfekte Treffer geben Punkte, Level und schalten neue Designs frei." }
+  ]
+}
+</script>
+
+<style>
+*{ box-sizing:border-box; }
+
+body{
+    margin:0;
+    padding:0 18px 60px;
+    background:
+        radial-gradient(900px 600px at 50% -10%,rgba(0,136,255,.13),transparent 60%),
+        #07101c;
+    color:#e8f3ff;
+    font-family:"Rajdhani","Segoe UI",Arial,sans-serif;
+    font-size:18px;
+    line-height:1.6;
+}
+
+.wrap{ max-width:760px; margin:0 auto; }
+
+header{ text-align:center; padding:46px 0 10px; }
+
+.logo{
+    font-family:"Orbitron",sans-serif;
+    font-size:clamp(34px,8vw,58px);
+    font-weight:900;
+    letter-spacing:7px;
+    text-shadow:0 0 14px #00aaff,0 0 40px #0055ff;
+}
+
+.claim{
+    color:#7fd4ff;
+    letter-spacing:5px;
+    font-size:13px;
+    font-weight:700;
+    margin-top:4px;
+}
+
+h1{
+    font-family:"Orbitron",sans-serif;
+    font-size:clamp(23px,5vw,34px);
+    margin:34px 0 6px;
+    color:#fff;
+}
+
+h2{
+    font-family:"Orbitron",sans-serif;
+    font-size:clamp(18px,4vw,23px);
+    margin:32px 0 8px;
+    color:#00aaff;
+}
+
+a{ color:#4db8ff; }
+
+.play{
+    display:block;
+    max-width:340px;
+    margin:26px auto;
+    padding:18px;
+    border-radius:16px;
+    background:linear-gradient(90deg,#0055ff,#00aaff);
+    color:#fff;
+    font-family:"Orbitron",sans-serif;
+    font-weight:700;
+    font-size:19px;
+    text-align:center;
+    text-decoration:none;
+    box-shadow:0 10px 34px rgba(0,120,255,.4);
+}
+
+.mode{
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:14px;
+    background:rgba(255,255,255,.05);
+    padding:15px 17px;
+    margin:11px 0;
+}
+
+.mode h3{
+    margin:0 0 4px;
+    font-size:19px;
+    color:#fff;
+}
+
+.mode p{ margin:0; opacity:.85; font-size:17px; }
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin:12px 0;
+    font-size:17px;
+}
+
+th,td{
+    text-align:left;
+    padding:9px 10px;
+    border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+th{ color:#7fd4ff; }
+
+footer{
+    margin-top:46px;
+    padding-top:18px;
+    border-top:1px solid rgba(255,255,255,.12);
+    font-size:14px;
+    opacity:.65;
+    text-align:center;
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+    <div class="logo">KRONIX</div>
+    <div class="claim">WE CREATE GAMES</div>
+</header>
+
+<h1>Timer Challenge – Anleitung</h1>
+
+<p><strong>Timer Challenge</strong> ist ein kostenloses Geschicklichkeitsspiel für Browser,
+Handy und PC. Die Aufgabe klingt einfach und ist doch knifflig: Du startest einen Timer
+und musst ihn <strong>exakt auf die Zielzeit</strong> stoppen – auf die Hundertstelsekunde
+genau. Wer trifft, sammelt Punkte, steigt im Level auf und klettert in der weltweiten
+Bestenliste.</p>
+
+<a class="play" href="./index.html">▶ Jetzt spielen</a>
+
+<h2>So funktioniert das Spiel</h2>
+
+<ol>
+    <li><strong>Modus wählen:</strong> Oben rechts öffnest du das Menü mit vier Kategorien.</li>
+    <li><strong>Starten:</strong> Einmal auf den Bildschirm tippen startet den Timer.</li>
+    <li><strong>Stoppen:</strong> Noch einmal tippen, genau im richtigen Moment.</li>
+    <li><strong>Verbessern:</strong> Deine Genauigkeit wird in Prozent angezeigt. 100 % heißt PERFECT.</li>
+</ol>
+
+<h2>Alle Spielmodi</h2>
+
+<div class="mode">
+    <h3>⏱️ Normalmodus</h3>
+    <p>Freies Stoppen ohne Zielzeit. Gut zum Aufwärmen und um ein Gefühl für die Zeit zu bekommen.</p>
+</div>
+
+<div class="mode">
+    <h3>🕶️ Blindmodus</h3>
+    <p>Der Timer läuft, aber du siehst ihn nicht. Du musst die Zeit im Kopf mitzählen.</p>
+</div>
+
+<div class="mode">
+    <h3>🎯 Challenge</h3>
+    <p>Das Spiel gibt dir eine zufällige Zielzeit zwischen 1 und 10 Sekunden. Triff sie so genau wie möglich.</p>
+</div>
+
+<div class="mode">
+    <h3>🎯🕶️ Challenge Blind</h3>
+    <p>Zielzeit vorgegeben, Timer versteckt. Die Königsdisziplin für dein Zeitgefühl.</p>
+</div>
+
+<div class="mode">
+    <h3>🎯 Stoppe bei 1,00 / 5,00 / 10,00</h3>
+    <p>Drei feste Zielzeiten mit jeweils eigener Weltrangliste. Ideal, um sich mit anderen zu vergleichen.</p>
+</div>
+
+<div class="mode">
+    <h3>⚡ Reaktionstest</h3>
+    <p>Warte auf das GO-Signal und tippe so schnell wie möglich. Deine Reaktionszeit wird in
+    Millisekunden gemessen – unter 200 ms gilt als sehr gut. Wer zu früh tippt, hat verloren.</p>
+</div>
+
+<div class="mode">
+    <h3>🔥 Survival</h3>
+    <p>Runde für Runde wird der erlaubte Spielraum kleiner. Ein Fehlschlag beendet den Lauf.
+    Wie viele Runden überlebst du?</p>
+</div>
+
+<div class="mode">
+    <h3>👥 Freunde &amp; Online-Battle</h3>
+    <p>Spielt abwechselnd an einem Gerät – oder fordert euch online heraus: gleiche Runden,
+    gleiche Zielzeit, wer im Schnitt genauer ist, gewinnt.</p>
+</div>
+
+<h2>Level und Ränge</h2>
+
+<p>Jeder perfekte Treffer bringt dich im Level weiter. Mit dem Level steigt dein Rang:</p>
+
+<table>
+    <tr><th>Rang</th><th>ab Level</th></tr>
+    <tr><td>🥉 Bronze</td><td>1</td></tr>
+    <tr><td>🥈 Silber</td><td>5</td></tr>
+    <tr><td>🥇 Gold</td><td>10</td></tr>
+    <tr><td>💠 Platin</td><td>18</td></tr>
+    <tr><td>💎 Diamant</td><td>28</td></tr>
+    <tr><td>👑 KRONIX</td><td>40</td></tr>
+</table>
+
+<h2>Punkte und Designs freischalten</h2>
+
+<p>Für Treffer bekommst du Punkte – mit einer Serie (Streak) gibt es Bonus. Mit den Punkten
+schaltest du neue Farbdesigns frei: Ice und Sunset ab 100 Punkten, Toxic und Purpur ab 250,
+Crimson und Matrix ab 500 und das goldene Design ab 1000 Punkten.</p>
+
+<h2>Häufige Fragen</h2>
+
+<p><strong>Kostet das Spiel etwas?</strong><br>
+Nein, Timer Challenge ist komplett kostenlos und ohne Werbung.</p>
+
+<p><strong>Brauche ich ein Konto?</strong><br>
+Nein. Du kannst als Gast spielen. Ein Konto brauchst du nur für die weltweite Bestenliste
+und für Online-Battles gegen Freunde. Dabei werden nur ein Benutzername und ein Passwort
+gespeichert – keine E-Mail-Adresse, kein echter Name.</p>
+
+<p><strong>Kann ich es auf dem Handy installieren?</strong><br>
+Ja. Öffne das Spiel im Browser und wähle „Zum Startbildschirm hinzufügen“. Danach startet es
+wie eine richtige App im Vollbild und funktioniert auch offline.</p>
+
+<a class="play" href="./index.html">▶ Timer Challenge starten</a>
+
+<footer>
+    © 2026 Ibralox37 / KRONIX – WE CREATE GAMES. Alle Rechte vorbehalten.<br>
+    Timer Challenge ist ein urheberrechtlich geschütztes Spiel.
+</footer>
+
+</div>
+</body>
+</html>
