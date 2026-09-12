@@ -6720,10 +6720,15 @@ async function openAdminPanel(){
         zeilen +
         '<p class="smallText">Gebannte Spieler verschwinden aus allen Bestenlisten, ' +
         'können aber weiterspielen.</p>' +
+        '<button class="panelButton danger" id="resetMineButton">' +
+        '🔄 Meine Rekorde zurücksetzen</button>' +
         '<button class="panelButton secondary" id="closeAdmin">Schließen</button>';
 
     document.getElementById("closeAdmin").onclick =
         function(){ panel.classList.remove("open"); };
+
+    document.getElementById("resetMineButton").onclick =
+        resetMyData;
 
     /* Bannen / Entbannen */
 
@@ -6738,6 +6743,79 @@ async function openAdminPanel(){
         btn.onclick = function(){ setBan(btn.dataset.unban, false, btn); };
 
     });
+
+}
+
+
+/* Eigenen Spielstand zurücksetzen:
+   Server-Rekorde UND die Daten auf diesem Gerät
+   (Punkte, Themes, Erfolge, Statistik). */
+
+async function resetMyData(){
+
+    if(!confirm(
+        "Wirklich alles zurücksetzen?\n\n" +
+        "Weg sind: perfekte Treffer, Level, alle Modus-Rekorde, " +
+        "Punkte, freigeschaltete Themes, Erfolge und die Statistik.\n\n" +
+        "Dein Konto und der Admin-Status bleiben."
+    ))return;
+
+    /* Gerätedaten */
+
+    localStorage.removeItem("kronixStats");
+    localStorage.removeItem("kronixAch");
+    localStorage.removeItem("kronixThemes");
+    localStorage.removeItem("kronixBestStreak");
+    localStorage.removeItem("kronixGuest");
+
+    /* Server-Rekorde */
+
+    if(isOnline() && !isGuest){
+
+        const { error } =
+            await supabaseClient.rpc("reset_my_records");
+
+        if(error){
+
+            showToast("⛔ Fehler", error.message);
+
+            return;
+
+        }
+
+    }
+
+    /* laufende Anzeige gleich mitziehen */
+
+    if(currentProfile){
+
+        currentProfile.perfects = 0;
+        currentProfile.ranks = emptyProfile().ranks;
+
+    }
+
+    perfectStreak = 0;
+    lastLevelSeen = 1;
+
+    hideStreak();
+
+    if(!themeUnlocked(currentDesign)){
+
+        currentDesign = "kronixBlue";
+        localStorage.setItem("kronixDesign", currentDesign);
+        applyDesign();
+
+    }
+
+    refreshThemeLocks();
+    updateRankingButton();
+
+    panel.classList.remove("open");
+
+    showToast(
+        "🔄 Zurückgesetzt",
+        "Alles auf Anfang – viel Spaß beim Neuaufbau!"
+    );
 
 }
 
