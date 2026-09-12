@@ -1093,6 +1093,58 @@ input{
 .menuItem .mHint{ font-size:11px; opacity:.55; }
 
 .menuItem.wide{ grid-column:1 / -1; min-height:60px; flex-direction:row; gap:10px; }
+
+/* Ein-/Aus-Schalter in den Einstellungen */
+
+.settingRow{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 14px;
+    margin:8px 0;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:14px;
+    background:rgba(255,255,255,.05);
+}
+
+.settingRow .sIcon{ font-size:23px; }
+
+.settingRow .sText{ flex:1; text-align:left; }
+
+.settingRow .sName{ font-size:16px; font-weight:700; }
+
+.settingRow .sHint{ font-size:12px; opacity:.6; }
+
+.toggle{
+    flex-shrink:0;
+    width:58px;
+    height:32px;
+    padding:0;
+    border:0;
+    border-radius:20px;
+    background:rgba(255,255,255,.18);
+    position:relative;
+    cursor:pointer;
+    transition:background .2s;
+}
+
+.toggle::after{
+    content:"";
+    position:absolute;
+    top:4px;
+    left:4px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:#fff;
+    transition:left .2s;
+}
+
+.toggle.on{
+    background:var(--c-accent);
+}
+
+.toggle.on::after{ left:30px; }
 .menuItem.admin{ background:linear-gradient(160deg,#5a1e28,#3a1219); border-color:rgba(255,90,70,.4); }
 
 /* Eigene Meldungsfenster statt der grauen Browser-Kästen */
@@ -1841,6 +1893,11 @@ input{
                 <span class="mIcon">📤</span>
                 <span class="mName">Herausfordern</span>
                 <span class="mHint">Freunde einladen</span>
+            </button>
+
+            <button class="menuItem wide" id="miSettings">
+                <span class="mIcon">⚙️</span>
+                <span class="mName">Einstellungen</span>
             </button>
 
             <button class="menuItem admin wide" id="miAdmin" style="display:none">
@@ -3631,9 +3688,23 @@ const radarScale =
 let radarVerlauf = [];
 let radarTimer = null;
 
+/* Radar kann in den Einstellungen abgeschaltet werden */
+
+let radarAktiv =
+    localStorage.getItem("kronixRadar") !== "0";
+
 /* Abweichung in Millisekunden (negativ = zu früh) */
 
 function radarZeigen(abweichungMs){
+
+    if(!radarAktiv){
+
+        radarBox.classList.remove("show");
+
+        return;
+
+    }
+
 
     radarVerlauf.push(abweichungMs);
 
@@ -9407,6 +9478,121 @@ function(){
     openAdminPanel();
 
 };
+
+
+/* ---------- Einstellungen ---------- */
+
+document.getElementById("miSettings").onclick =
+function(){
+
+    schliesseHauptmenue();
+    openSettings();
+
+};
+
+function openSettings(){
+
+    panelTitle.textContent = "⚙️ Einstellungen";
+
+    const zeile = function(id, icon, name, hinweis, an){
+
+        return '<div class="settingRow">' +
+            '<span class="sIcon">' + icon + '</span>' +
+            '<span class="sText"><div class="sName">' + name + '</div>' +
+            '<div class="sHint">' + hinweis + '</div></span>' +
+            '<button class="toggle' + (an ? " on" : "") +
+            '" id="' + id + '"></button></div>';
+
+    };
+
+    panelContent.innerHTML =
+
+        zeile("swRadar", "🎯", "Präzisions-Radar",
+              "Zeigt nach jedem Versuch, wie nah du dran warst",
+              radarAktiv) +
+
+        zeile("swSound", "🔊", "Sound",
+              "Töne bei Start, Stopp und Treffern",
+              soundEnabled) +
+
+        zeile("swNeon", "✨", "Neon-Leuchten",
+              "Timer leuchtet stärker",
+              neonEnabled) +
+
+        '<button class="panelButton secondary" id="closeSettings">Schließen</button>';
+
+    panel.classList.add("open");
+
+    document.getElementById("closeSettings").onclick =
+        function(){ panel.classList.remove("open"); };
+
+    /* Radar */
+
+    document.getElementById("swRadar").onclick =
+    function(){
+
+        radarAktiv = !radarAktiv;
+
+        localStorage.setItem(
+            "kronixRadar",
+            radarAktiv ? "1" : "0"
+        );
+
+        this.classList.toggle("on", radarAktiv);
+
+        if(!radarAktiv)
+            radarVerstecken();
+
+        playTone(radarAktiv ? 700 : 420, 0.08, "sine", 0.08);
+
+    };
+
+    /* Sound */
+
+    document.getElementById("swSound").onclick =
+    function(){
+
+        soundEnabled = !soundEnabled;
+
+        localStorage.setItem(
+            "kronixSound",
+            soundEnabled ? "1" : "0"
+        );
+
+        this.classList.toggle("on", soundEnabled);
+
+        soundButton.textContent =
+            soundEnabled ? "🔊 Sound: EIN" : "🔇 Sound: AUS";
+
+        if(soundEnabled)
+            playTone(660, 0.1, "sine", 0.1);
+
+    };
+
+    /* Neon */
+
+    document.getElementById("swNeon").onclick =
+    function(){
+
+        neonEnabled = !neonEnabled;
+
+        localStorage.setItem(
+            "kronixNeon",
+            neonEnabled ? "1" : "0"
+        );
+
+        this.classList.toggle("on", neonEnabled);
+
+        neonButton.textContent =
+            neonEnabled ? "✨ Neon: EIN" : "✨ Neon: AUS";
+
+        applyDesign();
+
+        playTone(620, 0.08, "sine", 0.08);
+
+    };
+
+}
 
 
 /* =====================================================
