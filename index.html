@@ -684,6 +684,65 @@ input{
     margin-top:2px;
 }
 
+/* Eigene Meldungsfenster statt der grauen Browser-Kästen */
+
+#dialogOverlay{
+    position:fixed;
+    inset:0;
+    z-index:7000;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(4,8,16,.72);
+    backdrop-filter:blur(4px);
+}
+
+#dialogOverlay.open{ display:flex; }
+
+.dialogBox{
+    width:min(92%,420px);
+    padding:26px 24px 22px;
+    border:1px solid rgba(255,255,255,.13);
+    border-radius:22px;
+    background:linear-gradient(160deg,#1b2942,#111a2b);
+    box-shadow:0 28px 80px rgba(0,0,0,.7),0 0 40px rgba(0,136,255,.15);
+    text-align:center;
+    animation:dialogIn .28s cubic-bezier(.2,1.3,.4,1);
+}
+
+@keyframes dialogIn{
+    0%{ opacity:0; transform:scale(.85) translateY(14px); }
+    100%{ opacity:1; transform:scale(1) translateY(0); }
+}
+
+.dialogIcon{
+    font-size:42px;
+    line-height:1;
+    margin-bottom:8px;
+}
+
+.dialogTitle{
+    font-family:"Orbitron",sans-serif;
+    font-size:19px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.dialogText{
+    font-size:16px;
+    opacity:.88;
+    line-height:1.5;
+    white-space:pre-line;
+}
+
+.dialogButtons{
+    display:flex;
+    gap:9px;
+    margin-top:18px;
+}
+
+.dialogButtons .panelButton{ margin-top:0; }
+
 /* Admin-Knopf im Spiel (nur für Admins sichtbar) */
 
 #adminButton{
@@ -1500,6 +1559,15 @@ input{
 
 <div id="perfectBanner">PERFECT!</div>
 
+<div id="dialogOverlay">
+    <div class="dialogBox">
+        <div class="dialogIcon" id="dialogIcon">⚠️</div>
+        <div class="dialogTitle" id="dialogTitle"></div>
+        <div class="dialogText" id="dialogText"></div>
+        <div class="dialogButtons" id="dialogButtons"></div>
+    </div>
+</div>
+
 <div id="pointsPop"></div>
 
 <button id="shareButton">
@@ -1575,6 +1643,95 @@ const supabaseClient =
 
 function isOnline(){
     return supabaseClient !== null;
+}
+
+
+/* =====================================================
+   MELDUNGEN IM SPIEL-DESIGN
+   Ersetzen die grauen Browser-Kästen (alert/confirm).
+===================================================== */
+
+function showMessage(titel, text, icon){
+
+    return new Promise(function(fertig){
+
+        const overlay =
+            document.getElementById("dialogOverlay");
+
+        document.getElementById("dialogIcon").textContent =
+            icon || "⚠️";
+
+        document.getElementById("dialogTitle").textContent =
+            titel || "";
+
+        document.getElementById("dialogText").textContent =
+            text || "";
+
+        const knoepfe =
+            document.getElementById("dialogButtons");
+
+        knoepfe.innerHTML =
+            '<button class="panelButton" id="dlgOk">OK</button>';
+
+        overlay.classList.add("open");
+
+        document.getElementById("dlgOk").onclick =
+        function(){
+
+            overlay.classList.remove("open");
+            fertig(true);
+
+        };
+
+    });
+
+}
+
+
+function showConfirm(titel, text, icon, jaText){
+
+    return new Promise(function(fertig){
+
+        const overlay =
+            document.getElementById("dialogOverlay");
+
+        document.getElementById("dialogIcon").textContent =
+            icon || "❓";
+
+        document.getElementById("dialogTitle").textContent =
+            titel || "";
+
+        document.getElementById("dialogText").textContent =
+            text || "";
+
+        const knoepfe =
+            document.getElementById("dialogButtons");
+
+        knoepfe.innerHTML =
+            '<button class="panelButton secondary" id="dlgNein">Abbrechen</button>' +
+            '<button class="panelButton danger" id="dlgJa">' +
+            (jaText || "Ja") + '</button>';
+
+        overlay.classList.add("open");
+
+        document.getElementById("dlgJa").onclick =
+        function(){
+
+            overlay.classList.remove("open");
+            fertig(true);
+
+        };
+
+        document.getElementById("dlgNein").onclick =
+        function(){
+
+            overlay.classList.remove("open");
+            fertig(false);
+
+        };
+
+    });
+
 }
 
 
@@ -1905,8 +2062,10 @@ async function(){
         !/^[a-zA-Z0-9_]{3,20}$/.test(username)
     ){
 
-        alert(
-            "Der Benutzername muss 3 bis 20 Zeichen haben und darf nur Buchstaben, Zahlen und _ enthalten."
+        showMessage(
+            "Benutzername prüfen",
+            "Der Name muss 3 bis 20 Zeichen haben und darf nur Buchstaben, Zahlen und _ enthalten.",
+            "✏️"
         );
 
         return;
@@ -1915,8 +2074,10 @@ async function(){
 
     if(password.length < 6){
 
-        alert(
-            "Das Passwort muss mindestens 6 Zeichen haben."
+        showMessage(
+            "Passwort zu kurz",
+            "Das Passwort muss mindestens 6 Zeichen haben.",
+            "🔑"
         );
 
         return;
@@ -1945,8 +2106,10 @@ async function(){
 
     }catch(error){
 
-        alert(
-            authErrorText(error)
+        showMessage(
+            "Anmeldung fehlgeschlagen",
+            authErrorText(error),
+            "🚫"
         );
 
     }
@@ -2546,8 +2709,10 @@ function(){
 
             if(error){
 
-                alert(
-                    authErrorText(error)
+                showMessage(
+                    "Speichern fehlgeschlagen",
+                    authErrorText(error),
+                    "🖼️"
                 );
 
                 return;
@@ -2585,11 +2750,15 @@ function(){
     ).onclick =
     async function(){
 
-        if(
-            !confirm(
-                "Willst du dein Konto wirklich löschen? Alle Punkte gehen für immer verloren."
-            )
-        )return;
+        const sicher =
+            await showConfirm(
+                "Konto wirklich löschen?",
+                "Dein Konto, alle Punkte, Level und Rekorde gehen für immer verloren. Das kann niemand rückgängig machen.",
+                "🗑️",
+                "Endgültig löschen"
+            );
+
+        if(!sicher)return;
 
         const { error } =
             await supabaseClient
@@ -2597,8 +2766,10 @@ function(){
 
         if(error){
 
-            alert(
-                authErrorText(error)
+            showMessage(
+                "Löschen fehlgeschlagen",
+                authErrorText(error),
+                "🚫"
             );
 
             return;
@@ -7040,12 +7211,17 @@ async function openAdminPlayers(){
 
 async function resetMyData(){
 
-    if(!confirm(
-        "Wirklich alles zurücksetzen?\n\n" +
-        "Weg sind: perfekte Treffer, Level, alle Modus-Rekorde, " +
-        "Punkte, freigeschaltete Themes, Erfolge und die Statistik.\n\n" +
-        "Dein Konto und der Admin-Status bleiben."
-    ))return;
+    const sicher =
+        await showConfirm(
+            "Wirklich alles zurücksetzen?",
+            "Weg sind: perfekte Treffer, Level, alle Modus-Rekorde, Punkte, " +
+            "freigeschaltete Themes, Erfolge und die Statistik.\n\n" +
+            "Dein Konto und der Admin-Status bleiben.",
+            "🔄",
+            "Zurücksetzen"
+        );
+
+    if(!sicher)return;
 
     /* Gerätedaten */
 
