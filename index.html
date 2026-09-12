@@ -2576,6 +2576,11 @@ let neonEnabled =
 
 /* Reaktionstest */
 
+/* Untergrenze für die Weltrangliste (muss zur
+   Server-Prüfung in submit_best passen) */
+
+const REACTION_MIN = 50;
+
 let reactionState =
     "idle";
 
@@ -4202,14 +4207,39 @@ function handleReactionTap(eventTime){
         saveStats(s);
 
         addPoints(
+            ms < 100 ? 40 :
             ms < 200 ? 25 :
             ms < 300 ? 12 : 5
         );
 
-        submitBest(
-            "reaction",
-            ms
+        showPoints(
+            ms < 100 ? 40 :
+            ms < 200 ? 25 :
+            ms < 300 ? 12 : 5
         );
+
+        if(ms < 100)
+            showPerfectBanner(
+                ms < 10 ? "KÖNIG!" :
+                ms < 50 ? "ULTRA!" : "BLITZ!"
+            );
+
+        /* Ab 50 ms geht der Wert in die Weltrangliste.
+           Darunter ist es kein Reagieren mehr, sondern
+           Raten – der Titel bleibt, der Ranglisten-Platz
+           nicht, damit die Liste ehrlich bleibt. */
+
+        const zaehltFuerRangliste =
+            ms >= REACTION_MIN;
+
+        if(zaehltFuerRangliste){
+
+            submitBest(
+                "reaction",
+                ms
+            );
+
+        }
 
         const account =
             getCurrentAccount();
@@ -4225,7 +4255,9 @@ function handleReactionTap(eventTime){
         info.textContent =
             bewertung +
             (
-                rekord > 0
+                !zaehltFuerRangliste
+                ? " (Glückstreffer – zählt nicht für die Rangliste)"
+                : rekord > 0
                 ? " – Rekord: " + rekord + " ms"
                 : ""
             ) +
