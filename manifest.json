@@ -1,7 +1,7 @@
 {
   "name": "Timer Challenge",
   "short_name": "Timer Challenge",
-  "description": "Stoppe den Timer genau auf die Zielzeit. Spiele Challenges, tritt in der globalen Rangliste an. Ein Spiel von KRONIX - WE CREATE GAMES.",
+  "description": "Stoppe den Timer genau auf die Zielzeit. Spiele Challenges, tritt in der globalen Rangliste an. Ein Spiel von VORIX - WE CREATE GAMES.",
   "lang": "de",
   "start_url": "./index.html",
   "scope": "./",

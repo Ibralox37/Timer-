@@ -2,13 +2,13 @@
    Macht das Spiel offline spielbar und installierbar.
    Konten/Rangliste brauchen weiterhin Internet. */
 
-const CACHE = "timer-challenge-v4";
+const CACHE = "timer-challenge-v5";
 
 const DATEIEN = [
   "./",
   "./index.html",
-  "./kronix-logo-hell.png",
-  "./kronix-favicon.png",
+  "./vorix-logo-hell.png",
+  "./vorix-favicon.png",
   "./icon-192.png",
   "./icon-512.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"

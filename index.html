@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- ==========================================================
      Timer Challenge
-     © 2026 Ibralox37 / KRONIX – WE CREATE GAMES
+     © 2026 Ibralox37 / VORIX – WE CREATE GAMES
      Alle Rechte vorbehalten. Kopieren, Verändern oder
      Wiederveröffentlichen dieses Spiels ist ohne
      Erlaubnis nicht gestattet.
@@ -11,10 +11,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
-<title>Timer Challenge – Stoppe den Timer auf die exakte Zeit | KRONIX</title>
+<title>Timer Challenge – Stoppe den Timer auf die exakte Zeit | VORIX</title>
 <meta name="description" content="Timer Challenge: Stoppe den Timer genau auf die Zielzeit! Kostenloses Geschicklichkeitsspiel mit 7 Modi, Online-Konten und globaler Rangliste. Direkt im Browser spielen oder als App installieren.">
 <link rel="canonical" href="https://ibralox37.github.io/Timer-/">
-<link rel="icon" type="image/png" href="kronix-favicon.png">
+<link rel="icon" type="image/png" href="vorix-favicon.png">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#07101c">
@@ -25,7 +25,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 
 <!-- Vorschau beim Teilen (WhatsApp, Discord usw.) -->
-<meta property="og:title" content="Timer Challenge – KRONIX">
+<meta property="og:title" content="Timer Challenge – VORIX">
 <meta property="og:description" content="Stoppe den Timer genau auf die Zielzeit. 7 Spielmodi, Online-Konten, globale Rangliste. Kostenlos im Browser spielen.">
 <meta property="og:image" content="https://ibralox37.github.io/Timer-/icon-512.png">
 <meta property="og:url" content="https://ibralox37.github.io/Timer-/">
@@ -50,7 +50,7 @@
   },
   "author": {
     "@type": "Organization",
-    "name": "KRONIX – WE CREATE GAMES"
+    "name": "VORIX – WE CREATE GAMES"
   }
 }
 </script>
@@ -1415,7 +1415,7 @@ input{
    LADEBILDSCHIRM
 ========================= */
 
-#kronix-loading{
+#vorix-loading{
     position:fixed;
     inset:0;
     z-index:999999;
@@ -1428,7 +1428,7 @@ input{
 /* Startscreen: Logo fliegt aus der Tiefe herein,
    danach sanftes Schweben */
 
-#kronix-dvd{
+#vorix-dvd{
     position:absolute;
     left:50%;
     top:42%;
@@ -1463,7 +1463,7 @@ input{
 
 /* Lichtstrahl, der einmal über das Logo wischt */
 
-#kronix-shine{
+#vorix-shine{
     position:absolute;
     inset:0;
     pointer-events:none;
@@ -1485,7 +1485,7 @@ input{
 
 /* "WE CREATE GAMES" erscheint Buchstabe für Buchstabe */
 
-#kronix-claim{
+#vorix-claim{
     position:absolute;
     left:50%;
     top:62%;
@@ -1508,7 +1508,7 @@ input{
 
 /* Ladebalken statt nackter Prozentzahl */
 
-#kronix-progress{
+#vorix-progress{
     position:absolute;
     bottom:96px;
     left:50%;
@@ -1520,7 +1520,7 @@ input{
     overflow:hidden;
 }
 
-#kronix-progress-fill{
+#vorix-progress-fill{
     height:100%;
     width:0%;
     border-radius:4px;
@@ -1531,7 +1531,7 @@ input{
 
 /* Ausblenden des ganzen Startscreens */
 
-#kronix-loading.fadeOut{
+#vorix-loading.fadeOut{
     animation:screenOut .55s ease-in forwards;
 }
 
@@ -1540,7 +1540,7 @@ input{
     100%{ opacity:0; transform:scale(1.08); }
 }
 
-.kronix-logo{
+.vorix-logo{
     font-size:clamp(45px,10vw,70px);
     font-weight:1000;
     letter-spacing:8px;
@@ -1551,7 +1551,7 @@ input{
         0 0 45px #0055ff;
 }
 
-.kronix-logo-bild{
+.vorix-logo-bild{
     display:block;
     width:clamp(230px,45vw,430px);
     filter:
@@ -1559,7 +1559,7 @@ input{
         drop-shadow(0 0 45px rgba(0,85,255,.3));
 }
 
-.kronix-subtitle{
+.vorix-subtitle{
     margin-top:8px;
     font-size:15px;
     font-weight:bold;
@@ -1567,7 +1567,7 @@ input{
     color:#00aaff;
 }
 
-.kronix-loading-text{
+.vorix-loading-text{
     position:absolute;
     bottom:75px;
     width:100%;
@@ -1576,7 +1576,7 @@ input{
     font-weight:bold;
 }
 
-.kronix-status{
+.vorix-status{
     position:absolute;
     bottom:38px;
     width:100%;
@@ -1743,16 +1743,16 @@ input{
 
         <img
             class="accountLogoBild"
-            src="kronix-logo-hell.png"
-            alt="KRONIX"
-            onerror="this.outerHTML='&lt;div class=&quot;accountLogo&quot;&gt;KRONIX&lt;/div&gt;'">
+            src="vorix-logo-hell.png"
+            alt="VORIX"
+            onerror="this.outerHTML='&lt;div class=&quot;accountLogo&quot;&gt;VORIX&lt;/div&gt;'">
 
         <h2 id="accountTitle">
             Konto erstellen
         </h2>
 
         <p id="accountDescription">
-            Erstelle dein Kronix-Konto.
+            Erstelle dein Vorix-Konto.
         </p>
 
         <input
@@ -1788,7 +1788,7 @@ input{
         <p class="smallText" id="accountHint"></p>
 
         <p class="smallText">
-            © 2026 KRONIX – WE CREATE GAMES
+            © 2026 VORIX – WE CREATE GAMES
         </p>
 
     </div>
@@ -1804,9 +1804,9 @@ input{
 
 <div id="startScreen">
 
-    <img id="startLogo" src="kronix-logo-hell.png"
-         alt="KRONIX – Timer Challenge"
-         onerror="this.outerHTML='&lt;div class=&quot;accountLogo&quot;&gt;KRONIX&lt;/div&gt;'">
+    <img id="startLogo" src="vorix-logo-hell.png"
+         alt="VORIX – Timer Challenge"
+         onerror="this.outerHTML='&lt;div class=&quot;accountLogo&quot;&gt;VORIX&lt;/div&gt;'">
 
     <div id="startPlayer"></div>
 
@@ -1823,7 +1823,7 @@ input{
     </div>
 
     <div id="startFooter">
-        © 2026 KRONIX – WE CREATE GAMES
+        © 2026 VORIX – WE CREATE GAMES
     </div>
 
 </div>
@@ -2072,7 +2072,7 @@ input{
     </button>
 
     <button class="designChoice" data-design="kronixBlue">
-        Kronix Blau
+        Vorix Blau
     </button>
 
     <button class="designChoice" data-design="whiteBlackBlue">
@@ -2151,11 +2151,11 @@ input{
                 color:#e8f3ff;font-family:Arial,sans-serif;line-height:1.6">
         <h1>Timer Challenge – stoppe den Timer auf die exakte Zeit</h1>
         <p><strong>Timer Challenge</strong> ist ein kostenloses Geschicklichkeitsspiel von
-        KRONIX. Starte den Timer und stoppe ihn exakt auf die Zielzeit – auf die
+        VORIX. Starte den Timer und stoppe ihn exakt auf die Zielzeit – auf die
         Hundertstelsekunde genau.</p>
         <p>Spielmodi: Normalmodus, Blindmodus, Challenge, Challenge Blind, Stoppe bei
         1,00 / 5,00 / 10,00 Sekunden, Reaktionstest, Survival und Online-Battles gegen
-        Freunde. Mit Level-System, Rängen von Bronze bis KRONIX, freischaltbaren Designs
+        Freunde. Mit Level-System, Rängen von Bronze bis VORIX, freischaltbaren Designs
         und weltweiter Bestenliste.</p>
         <p>Für dieses Spiel muss JavaScript eingeschaltet sein.
         <a href="anleitung.html" style="color:#4db8ff">Zur Spielanleitung</a></p>
@@ -2210,31 +2210,31 @@ input{
 </button>
 
 <!-- =========================
-     KRONIX LOADING
+     VORIX LOADING
 ========================= -->
 
-<div id="kronix-loading">
+<div id="vorix-loading">
 
-    <div id="kronix-dvd">
+    <div id="vorix-dvd">
 
         <img
-            class="kronix-logo-bild"
-            src="kronix-logo-hell.png"
-            alt="KRONIX – WE CREATE GAMES"
-            onerror="this.outerHTML='&lt;div class=&quot;kronix-logo&quot;&gt;KRONIX&lt;/div&gt;&lt;div class=&quot;kronix-subtitle&quot;&gt;WE CREATE GAMES&lt;/div&gt;'">
+            class="vorix-logo-bild"
+            src="vorix-logo-hell.png"
+            alt="VORIX – WE CREATE GAMES"
+            onerror="this.outerHTML='&lt;div class=&quot;vorix-logo&quot;&gt;VORIX&lt;/div&gt;&lt;div class=&quot;vorix-subtitle&quot;&gt;WE CREATE GAMES&lt;/div&gt;'">
 
     </div>
 
-    <div id="kronix-claim">WE CREATE GAMES</div>
+    <div id="vorix-claim">WE CREATE GAMES</div>
 
-    <div id="kronix-shine"></div>
+    <div id="vorix-shine"></div>
 
-    <div id="kronix-progress">
-        <div id="kronix-progress-fill"></div>
+    <div id="vorix-progress">
+        <div id="vorix-progress-fill"></div>
     </div>
 
-    <div class="kronix-status">
-        <span id="kronix-percent">0</span>%
+    <div class="vorix-status">
+        <span id="vorix-percent">0</span>%
     </div>
 
 </div>
@@ -2363,7 +2363,7 @@ function showConfirm(titel, text, icon, jaText){
 
 /* =====================================================
    KOPIERSCHUTZ
-   Das Spiel laeuft nur auf der echten Kronix-Adresse.
+   Das Spiel laeuft nur auf der echten Vorix-Adresse.
    Laedt jemand die Datei woanders hoch, startet es
    nicht, sondern zeigt den Hinweis aufs Original.
 ===================================================== */
@@ -2392,19 +2392,19 @@ if(!hostErlaubt()){
         'font-family:Arial,sans-serif">' +
         '<div style="padding:24px;max-width:480px">' +
         '<div style="font-size:44px;font-weight:900;letter-spacing:6px;' +
-        'text-shadow:0 0 18px #0088ff">KRONIX</div>' +
+        'text-shadow:0 0 18px #0088ff">VORIX</div>' +
         '<h2>Das ist eine unerlaubte Kopie</h2>' +
-        '<p>„Timer Challenge" ist ein Spiel von KRONIX – WE CREATE GAMES ' +
+        '<p>„Timer Challenge" ist ein Spiel von VORIX – WE CREATE GAMES ' +
         'und urheberrechtlich geschützt.</p>' +
         '<p>Spiele das Original hier:<br>' +
         '<a style="color:#00aaff;font-size:18px" ' +
         'href="https://ibralox37.github.io/Timer-/">' +
         'ibralox37.github.io/Timer-</a></p>' +
         '<p style="opacity:.6;font-size:13px">' +
-        '© 2026 Ibralox37 / KRONIX. Alle Rechte vorbehalten.</p>' +
+        '© 2026 Ibralox37 / VORIX. Alle Rechte vorbehalten.</p>' +
         '</div></body>';
 
-    throw new Error("Kronix: unerlaubte Domain");
+    throw new Error("Vorix: unerlaubte Domain");
 
 }
 
@@ -2623,7 +2623,7 @@ function(){
             "Konto erstellen";
 
         accountDescription.textContent =
-            "Erstelle dein Kronix-Konto.";
+            "Erstelle dein Vorix-Konto.";
 
         accountMainButton.textContent =
             "Konto erstellen";
@@ -7191,26 +7191,26 @@ applyDesign();
 
 
 /* =====================================================
-   KRONIX LADEBILDSCHIRM
+   VORIX LADEBILDSCHIRM
 ===================================================== */
 
-let kronixProgress =
+let vorixProgress =
     0;
 
-const kronixPercent =
+const vorixPercent =
     document.getElementById(
-        "kronix-percent"
+        "vorix-percent"
     );
 
-const kronixLoading =
+const vorixLoading =
     document.getElementById(
-        "kronix-loading"
+        "vorix-loading"
     );
 
 
-const kronixFill =
+const vorixFill =
     document.getElementById(
-        "kronix-progress-fill"
+        "vorix-progress-fill"
     );
 
 /* Startsound zum Logo-Einflug (nur wenn Sound an) */
@@ -7226,38 +7226,38 @@ setTimeout(
     150
 );
 
-const kronixInterval =
+const vorixInterval =
     setInterval(
         function(){
 
-            kronixProgress +=
+            vorixProgress +=
                 2;
 
 
             if(
-                kronixProgress >=
+                vorixProgress >=
                 100
             ){
 
-                kronixProgress =
+                vorixProgress =
                     100;
 
                 clearInterval(
-                    kronixInterval
+                    vorixInterval
                 );
 
 
                 setTimeout(
                     function(){
 
-                        kronixLoading.classList.add(
+                        vorixLoading.classList.add(
                             "fadeOut"
                         );
 
                         setTimeout(
                             function(){
 
-                                kronixLoading.remove();
+                                vorixLoading.remove();
 
                             },
                             550
@@ -7270,12 +7270,12 @@ const kronixInterval =
             }
 
 
-            kronixPercent.textContent =
-                kronixProgress;
+            vorixPercent.textContent =
+                vorixProgress;
 
-            if(kronixFill)
-                kronixFill.style.width =
-                    kronixProgress + "%";
+            if(vorixFill)
+                vorixFill.style.width =
+                    vorixProgress + "%";
 
         },
         22
@@ -7318,7 +7318,7 @@ function levelInfo(perfects){
 }
 
 
-/* Ränge: Bronze → Silber → Gold → Platin → Diamant → KRONIX */
+/* Ränge: Bronze → Silber → Gold → Platin → Diamant → VORIX */
 
 const RANKS = [
     { ab: 1,  name:"Bronze",  icon:"🥉", farbe:"#cd7f32" },
@@ -7326,7 +7326,7 @@ const RANKS = [
     { ab: 10, name:"Gold",    icon:"🥇", farbe:"#ffd24a" },
     { ab: 18, name:"Platin",  icon:"💠", farbe:"#7fe3ff" },
     { ab: 28, name:"Diamant", icon:"💎", farbe:"#b06bff" },
-    { ab: 40, name:"KRONIX",  icon:"👑", farbe:"#00d4ff" }
+    { ab: 40, name:"VORIX",  icon:"👑", farbe:"#00d4ff" }
 ];
 
 function rankInfo(level){

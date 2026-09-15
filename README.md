@@ -1,6 +1,6 @@
 # Timer Challenge
 
-Ein Geschicklichkeitsspiel von **KRONIX – WE CREATE GAMES**.
+Ein Geschicklichkeitsspiel von **VORIX – WE CREATE GAMES**.
 
 Stoppe den Timer genau auf die Zielzeit. Spiele Challenges, sammle 100%-Treffer und tritt in der globalen Rangliste gegen Spieler auf der ganzen Welt an.
 
@@ -20,6 +20,6 @@ Das Spiel läuft im Browser und lässt sich auf Handy und PC als App installiere
 
 ## Rechtliches
 
-**© 2026 Ibralox37 / KRONIX – WE CREATE GAMES. Alle Rechte vorbehalten.**
+**© 2026 Ibralox37 / VORIX – WE CREATE GAMES. Alle Rechte vorbehalten.**
 
 Dieses Spiel und sein Quellcode sind urheberrechtlich geschützt. Das Kopieren, Verändern, Weiterverbreiten oder Wiederveröffentlichen — insbesondere das Hochladen als eigene App in einen App-Store — ist ohne ausdrückliche Erlaubnis nicht gestattet.
