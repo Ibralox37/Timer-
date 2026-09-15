@@ -455,6 +455,16 @@ button{
     outline:2px solid var(--c-accent);
 }
 
+/* Zweizeiliger Knopf: Überschrift plus kleine Erklärung */
+
+.modeButton .modeHint{
+    display:block;
+    margin-top:3px;
+    font-size:12px;
+    font-weight:500;
+    opacity:.6;
+}
+
 /* --- Kategorie-Kacheln (Ebene 1 im Modus-Menü) --- */
 
 #modeCats{
@@ -2043,12 +2053,23 @@ input{
             </button>
         </div>
 
+        <!-- Challenge hat eine Ebene mehr: erst Normal oder
+             Blind waehlen, dann die Zielzeit. -->
+
         <div data-group="challenge" style="display:none">
-            <button class="modeButton" data-mode="challenge">
-                🎯 Challenge
+            <button class="modeButton" data-goto="challengeNormal">
+                🎯 Normal
+                <span class="modeHint">Timer und Ring sichtbar</span>
             </button>
-            <button class="modeButton" data-mode="challengeBlind">
-                🎯🕶️ Challenge Blind
+            <button class="modeButton" data-goto="challengeBlindGroup">
+                🕶️ Blind
+                <span class="modeHint">Timer und Ring versteckt</span>
+            </button>
+        </div>
+
+        <div data-group="challengeNormal" style="display:none">
+            <button class="modeButton" data-mode="challenge">
+                🎯 Zufallszeit
             </button>
             <button class="modeButton" data-mode="oneSecond">
                 🎯 Stoppe bei 1,00
@@ -2058,6 +2079,21 @@ input{
             </button>
             <button class="modeButton" data-mode="tenSecond">
                 🎯 Stoppe bei 10,00
+            </button>
+        </div>
+
+        <div data-group="challengeBlindGroup" style="display:none">
+            <button class="modeButton" data-mode="challengeBlind">
+                🕶️ Zufallszeit
+            </button>
+            <button class="modeButton" data-mode="oneSecondBlind">
+                🕶️ Blind bei 1,00
+            </button>
+            <button class="modeButton" data-mode="fiveSecondBlind">
+                🕶️ Blind bei 5,00
+            </button>
+            <button class="modeButton" data-mode="tenSecondBlind">
+                🕶️ Blind bei 10,00
             </button>
         </div>
 
@@ -2668,6 +2704,9 @@ function emptyProfile(){
             oneSecond:0,
             fiveSecond:0,
             tenSecond:0,
+            oneSecondBlind:0,
+            fiveSecondBlind:0,
+            tenSecondBlind:0,
             reaction:0,
             survival:0
         }
@@ -4122,6 +4161,61 @@ let neonEnabled =
 
 const REACTION_MIN = 1;
 
+
+/* =====================================================
+   MODUS-TABELLEN
+
+   Eine Stelle statt zehn verteilter Abfragen. Vorher stand
+   in jeder Funktion eine eigene Liste der Challenge-Modi;
+   beim Ergaenzen eines Modus musste man sie alle finden.
+===================================================== */
+
+/* Blindmodi: Der Timer laeuft unsichtbar.
+   WICHTIG: Hier bleibt auch der Ziel-Ring aus. Vorher lief
+   er mit, und an seinem Fuellstand konnte man ablesen, wie
+   weit die Zeit ist - "blind" war damit nur halb blind
+   (gemeldet von Ibrahim am 15.09.2026). */
+
+const BLIND_MODI = [
+    "blind",
+    "challengeBlind",
+    "oneSecondBlind",
+    "fiveSecondBlind",
+    "tenSecondBlind"
+];
+
+function istBlind(modus){
+
+    return BLIND_MODI.indexOf(modus || currentMode) !== -1;
+
+}
+
+/* Modi mit fester Zielzeit */
+
+const FESTE_ZIELE = {
+    oneSecond:       1,
+    oneSecondBlind:  1,
+    fiveSecond:      5,
+    fiveSecondBlind: 5,
+    tenSecond:      10,
+    tenSecondBlind: 10
+};
+
+/* Alle Modi, die auf eine Zielzeit gespielt werden */
+
+const ZIEL_MODI = [
+    "challenge",  "challengeBlind",
+    "oneSecond",  "oneSecondBlind",
+    "fiveSecond", "fiveSecondBlind",
+    "tenSecond",  "tenSecondBlind"
+];
+
+function istZielModus(modus){
+
+    return ZIEL_MODI.indexOf(modus || currentMode) !== -1;
+
+}
+
 let reactionState =
     "idle";
 
@@ -4343,6 +4437,15 @@ const rankingNames = {
 
     tenSecond:
         "🎯 Stoppe bei 10 Sekunden",
+
+    oneSecondBlind:
+        "🕶️ Blind bei 1 Sekunde",
+
+    fiveSecondBlind:
+        "🕶️ Blind bei 5 Sekunden",
+
+    tenSecondBlind:
+        "🕶️ Blind bei 10 Sekunden",
 
     reaction:
         "⚡ Reaktionstest",
@@ -5058,13 +5161,13 @@ function updateTimer(){
         performance.now() -
         startTime;
 
-    /* Ziel-Ring mitlaufen lassen */
+    /* Ziel-Ring mitlaufen lassen – aber nie im Blindmodus,
+       sonst verraet der Fuellstand die Zeit. */
 
     if(
         challengeTarget > 0 &&
-        currentMode !== "normal" &&
-        currentMode !== "blind" &&
-        currentMode !== "reaction"
+        istZielModus() &&
+        !istBlind()
     ){
 
         updateRing(
@@ -5073,10 +5176,7 @@ function updateTimer(){
 
     }
 
-    if(
-        currentMode === "blind" ||
-        currentMode === "challengeBlind"
-    ){
+    if(istBlind()){
 
         timer.textContent =
             "???";
@@ -5121,43 +5221,27 @@ function createNewTarget(){
 
     }
 
-    if(
-        currentMode === "oneSecond"
-    ){
+    if(FESTE_ZIELE[currentMode] !== undefined){
 
         challengeTarget =
-            1;
-
-    }
-
-    if(
-        currentMode === "fiveSecond"
-    ){
-
-        challengeTarget =
-            5;
-
-    }
-
-    if(
-        currentMode === "tenSecond"
-    ){
-
-        challengeTarget =
-            10;
+            FESTE_ZIELE[currentMode];
 
     }
 
     timer.textContent =
         challengeTarget.toFixed(2);
 
-    if(
-        currentMode ===
-        "challengeBlind"
-    ){
+    if(currentMode === "challengeBlind"){
 
         info.textContent =
             "🎯🕶️ Merke dir die Zeit";
+
+    }else if(istBlind()){
+
+        info.textContent =
+            "🕶️ Blind – stoppe bei " +
+            challengeTarget.toFixed(2) +
+            " Sekunden";
 
     }else{
 
@@ -5276,12 +5360,12 @@ function handleGameTap(eventTime){
 
         soundStart();
 
-        /* Ring nur bei Modi mit Zielzeit */
+        /* Ring nur bei Modi mit Zielzeit – und nie blind */
 
         showRing(
             challengeTarget > 0 &&
-            currentMode !== "normal" &&
-            currentMode !== "blind"
+            istZielModus() &&
+            !istBlind()
         );
 
         updateRing(0);
@@ -5327,22 +5411,21 @@ function handleGameTap(eventTime){
 
 
         if(
-            currentMode ===
-            "challengeBlind"
+            istBlind() &&
+            currentMode !== "blind"
         ){
 
             info.textContent =
-                "🎯🕶️ Stoppe bei " +
+                "🕶️ Stoppe bei " +
                 challengeTarget.toFixed(2) +
-                " – Timer versteckt";
+                " – Timer und Ring versteckt";
 
         }
 
 
         if(
-            currentMode === "oneSecond" ||
-            currentMode === "fiveSecond" ||
-            currentMode === "tenSecond"
+            FESTE_ZIELE[currentMode] !== undefined &&
+            !istBlind()
         ){
 
             info.textContent =
@@ -5456,13 +5539,7 @@ function handleGameTap(eventTime){
     }
 
 
-    if(
-        currentMode === "challenge" ||
-        currentMode === "challengeBlind" ||
-        currentMode === "oneSecond" ||
-        currentMode === "fiveSecond" ||
-        currentMode === "tenSecond"
-    ){
+    if(istZielModus()){
 
         finishTarget(
             actual
@@ -6152,6 +6229,15 @@ function changeMode(
         tenSecond:
             "Stoppe bei 10,00",
 
+        oneSecondBlind:
+            "Blind bei 1,00",
+
+        fiveSecondBlind:
+            "Blind bei 5,00",
+
+        tenSecondBlind:
+            "Blind bei 10,00",
+
         reaction:
             "Reaktionstest",
 
@@ -6221,13 +6307,7 @@ function changeMode(
     }
 
 
-    if(
-        newMode === "challenge" ||
-        newMode === "challengeBlind" ||
-        newMode === "oneSecond" ||
-        newMode === "fiveSecond" ||
-        newMode === "tenSecond"
-    ){
+    if(istZielModus(newMode)){
 
         createNewTarget();
 
@@ -6313,11 +6393,26 @@ const modeListTitle =
 const CAT_TITLES = {
     timer: "⏱️ TIMER",
     challenge: "🎯 CHALLENGE",
+    challengeNormal: "🎯 CHALLENGE · NORMAL",
+    challengeBlindGroup: "🕶️ CHALLENGE · BLIND",
     skill: "⚡ SKILL",
     friends: "👥 FREUNDE"
 };
 
+/* Wohin der Zurueck-Knopf fuehrt. Ohne diese Tabelle
+   landete man aus einer Untergruppe wieder ganz oben
+   statt eine Ebene hoeher. */
+
+const GRUPPE_ZURUECK = {
+    challengeNormal: "challenge",
+    challengeBlindGroup: "challenge"
+};
+
+let aktuelleGruppe = null;
+
 function showModeCats(){
+
+    aktuelleGruppe = null;
 
     modeCats.style.display = "grid";
     modeList.style.display = "none";
@@ -6325,6 +6420,8 @@ function showModeCats(){
 }
 
 function showModeGroup(cat){
+
+    aktuelleGruppe = cat;
 
     modeCats.style.display = "none";
     modeList.style.display = "block";
@@ -6365,6 +6462,28 @@ document
 
 });
 
+/* Knoepfe, die nur eine Ebene tiefer fuehren (Challenge) */
+
+document
+.querySelectorAll("[data-goto]")
+.forEach(function(btn){
+
+    btn.addEventListener(
+        "pointerup",
+        function(e){
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            playTone(520, 0.06, "sine", 0.06);
+
+            showModeGroup(btn.dataset.goto);
+
+        }
+    );
+
+});
+
 document.getElementById("modeBack")
 .addEventListener(
     "pointerup",
@@ -6373,7 +6492,17 @@ document.getElementById("modeBack")
         e.preventDefault();
         e.stopPropagation();
 
-        showModeCats();
+        const hoeher = GRUPPE_ZURUECK[aktuelleGruppe];
+
+        if(hoeher){
+
+            showModeGroup(hoeher);
+
+        }else{
+
+            showModeCats();
+
+        }
 
     }
 );
@@ -9625,7 +9754,11 @@ function oeffneHauptmenue(){
         normal:"Normalmodus", blind:"Blindmodus",
         challenge:"Challenge", challengeBlind:"Challenge Blind",
         oneSecond:"Stoppe bei 1,00", fiveSecond:"Stoppe bei 5,00",
-        tenSecond:"Stoppe bei 10,00", reaction:"Reaktionstest",
+        tenSecond:"Stoppe bei 10,00",
+        oneSecondBlind:"Blind bei 1,00",
+        fiveSecondBlind:"Blind bei 5,00",
+        tenSecondBlind:"Blind bei 10,00",
+        reaction:"Reaktionstest",
         survival:"Survival", friends:"Freunde", battle:"Battle"
     };
 
