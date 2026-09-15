@@ -2,7 +2,7 @@
    Macht das Spiel offline spielbar und installierbar.
    Konten/Rangliste brauchen weiterhin Internet. */
 
-const CACHE = "timer-challenge-v5";
+const CACHE = "timer-challenge-v6";
 
 const DATEIEN = [
   "./",

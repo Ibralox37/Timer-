@@ -11,8 +11,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
-<title>Timer Challenge – Stoppe den Timer auf die exakte Zeit | VORIX</title>
-<meta name="description" content="Timer Challenge: Stoppe den Timer genau auf die Zielzeit! Kostenloses Geschicklichkeitsspiel mit 7 Modi, Online-Konten und globaler Rangliste. Direkt im Browser spielen oder als App installieren.">
+<title>Timer Challenge Vorix – das Timer-Spiel</title>
+<meta name="description" content="Timer Challenge Vorix – das Timer-Spiel: Stoppe den Timer genau auf die Zielzeit! Kostenloses Geschicklichkeitsspiel mit 9 Modi, Online-Konten und weltweiter Rangliste. Direkt im Browser spielen oder als App installieren.">
 <link rel="canonical" href="https://ibralox37.github.io/Timer-/">
 <link rel="icon" type="image/png" href="vorix-favicon.png">
 <link rel="manifest" href="manifest.json">
@@ -24,25 +24,35 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 
-<!-- Vorschau beim Teilen (WhatsApp, Discord usw.) -->
-<meta property="og:title" content="Timer Challenge – VORIX">
-<meta property="og:description" content="Stoppe den Timer genau auf die Zielzeit. 7 Spielmodi, Online-Konten, globale Rangliste. Kostenlos im Browser spielen.">
-<meta property="og:image" content="https://ibralox37.github.io/Timer-/icon-512.png">
+<!-- Vorschau beim Teilen (WhatsApp, Discord usw.) und Bild fuer Google -->
+<meta property="og:site_name" content="VORIX – WE CREATE GAMES">
+<meta property="og:title" content="Timer Challenge Vorix – das Timer-Spiel">
+<meta property="og:description" content="Stoppe den Timer genau auf die Zielzeit. 9 Spielmodi, Online-Konten, weltweite Rangliste. Kostenlos im Browser spielen.">
+<meta property="og:image" content="https://ibralox37.github.io/Timer-/vorschau.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="VORIX – WE CREATE GAMES, Timer Challenge">
 <meta property="og:url" content="https://ibralox37.github.io/Timer-/">
 <meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Timer Challenge Vorix – das Timer-Spiel">
+<meta name="twitter:description" content="Stoppe den Timer genau auf die Zielzeit. 9 Spielmodi, Online-Konten, weltweite Rangliste.">
+<meta name="twitter:image" content="https://ibralox37.github.io/Timer-/vorschau.png">
 
 <!-- Strukturierte Daten fuer Google -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "VideoGame",
-  "name": "Timer Challenge",
+  "name": "Timer Challenge Vorix",
+  "alternateName": ["Timer Challenge", "Vorix Timer", "Timer Challenge Vorix – das Timer-Spiel"],
   "url": "https://ibralox37.github.io/Timer-/",
-  "description": "Stoppe den Timer genau auf die Zielzeit. Geschicklichkeitsspiel mit 7 Modi, Online-Konten und globaler Rangliste.",
-  "image": "https://ibralox37.github.io/Timer-/icon-512.png",
+  "description": "Timer Challenge Vorix – das Timer-Spiel. Stoppe den Timer genau auf die Zielzeit. Geschicklichkeitsspiel mit 9 Modi, Online-Konten und weltweiter Rangliste.",
+  "image": "https://ibralox37.github.io/Timer-/vorschau.png",
   "inLanguage": "de",
   "genre": "Geschicklichkeitsspiel",
   "gamePlatform": ["Web Browser", "Android", "iOS"],
+  "playMode": ["SinglePlayer", "MultiPlayer"],
   "offers": {
     "@type": "Offer",
     "price": "0",
@@ -50,7 +60,20 @@
   },
   "author": {
     "@type": "Organization",
-    "name": "VORIX – WE CREATE GAMES"
+    "name": "VORIX – WE CREATE GAMES",
+    "alternateName": "Vorix",
+    "url": "https://ibralox37.github.io/Timer-/",
+    "logo": "https://ibralox37.github.io/Timer-/vorix-logo.png"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "VORIX – WE CREATE GAMES",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://ibralox37.github.io/Timer-/vorix-logo.png",
+      "width": 828,
+      "height": 400
+    }
   }
 }
 </script>
@@ -2866,6 +2889,28 @@ async function loadProfile(user){
     if(error)throw error;
 
     if(data){
+
+        /* Gesperrtes Konto: gar nicht erst ins Spiel lassen.
+           Das ist nur die sichtbare Haelfte – der Server
+           lehnt Punkte von gesperrten Konten zusaetzlich ab,
+           damit niemand die Sperre im Browser umbaut. */
+
+        if(data.banned === true){
+
+            await supabaseClient.auth.signOut();
+
+            await showMessage(
+                "Konto gesperrt",
+                "Dieses Konto wurde von einem Admin gesperrt. " +
+                "Spielen ist damit nicht mehr moeglich.",
+                "🚫"
+            );
+
+            location.reload();
+
+            return;
+
+        }
 
         isAdmin = data.is_admin === true;
 
@@ -9653,6 +9698,206 @@ showModeCats();
 initAccount();
 
 updateRankingButton();
+
+
+/* =====================================================
+   SCHUTZ VOR FREMDEN PROGRAMMEN UND WERKZEUGEN
+
+   Ehrlich vorweg, damit niemand sich in Sicherheit wiegt:
+   Eine Internetseite kann NICHT sehen, welche Programme
+   auf dem Rechner laufen. Der Browser erlaubt das aus
+   gutem Grund nicht. Erkannt wird deshalb das, was im
+   Spiel tatsaechlich ankommt:
+
+     1. geoeffnete Entwicklerwerkzeuge des Browsers
+     2. Klicks, die kein Mensch ausgeloest hat
+     3. Auto-Klicker an ihrem zu gleichmaessigen Takt
+
+   Punkt 1 und 3 beenden das Spiel sofort. Tastenkuerzel
+   zum Quelltext-Anzeigen werden nur geblockt.
+
+   Auf localhost ist der Schutz aus, sonst koennte Ibrahim
+   nicht mehr selbst am Spiel arbeiten.
+===================================================== */
+
+const SCHUTZ_AN =
+    ["localhost", "127.0.0.1", ""].indexOf(
+        location.hostname.toLowerCase()
+    ) === -1;
+
+const SCHUTZ = {
+    ausgeloest: false,
+    klicks: []
+};
+
+
+function schutzSchliessen(grund){
+
+    if(SCHUTZ.ausgeloest) return;
+    SCHUTZ.ausgeloest = true;
+
+    /* laufende Runde hart stoppen */
+    try{ running = false; }catch(e){}
+    try{
+        if(animationFrame) cancelAnimationFrame(animationFrame);
+    }catch(e){}
+
+    document.documentElement.innerHTML =
+        '<body style="margin:0;height:100vh;display:flex;' +
+        'align-items:center;justify-content:center;' +
+        'background:#07101c;color:#fff;text-align:center;' +
+        'font-family:Arial,sans-serif">' +
+        '<div style="padding:24px;max-width:520px">' +
+        '<img src="vorix-logo-hell.png" alt="VORIX" ' +
+        'style="width:min(360px,70vw);height:auto;margin-bottom:10px">' +
+        '<h2 style="color:#ff6b6b">Fremdes Programm erkannt</h2>' +
+        '<p>' + grund + '</p>' +
+        '<p>Das Spiel wurde deshalb geschlossen. Lade die Seite ' +
+        'neu und spiele ohne fremde Hilfsmittel &ndash; nur so ' +
+        'ist die Bestenliste fuer alle fair.</p>' +
+        '<p style="opacity:.6;font-size:13px">' +
+        '&copy; 2026 Ibralox37 / VORIX &ndash; WE CREATE GAMES</p>' +
+        '</div></body>';
+
+}
+
+
+if(SCHUTZ_AN){
+
+    /* --- 1. Rechtsklick und Entwickler-Tastenkuerzel sperren --- */
+
+    document.addEventListener("contextmenu", function(e){
+        e.preventDefault();
+    });
+
+    document.addEventListener("keydown", function(e){
+
+        const k = e.key ? e.key.toUpperCase() : "";
+
+        const verboten =
+            e.key === "F12" ||
+            (e.ctrlKey && e.shiftKey &&
+                (k === "I" || k === "J" || k === "C")) ||
+            (e.ctrlKey && (k === "U" || k === "S"));
+
+        if(verboten){
+
+            e.preventDefault();
+
+            showMessage(
+                "Gesperrt",
+                "Die Entwicklerwerkzeuge sind im Spiel gesperrt.",
+                "🛡️"
+            );
+
+        }
+
+    });
+
+
+    /* --- 2. Offene Entwicklerwerkzeuge erkennen ---------------
+       Die Anweisung debugger haelt nur dann an, wenn die
+       Werkzeuge wirklich offen sind. Sind sie zu, kostet die
+       Pruefung nichts. Deshalb keine Fehlalarme beim Zoomen,
+       anders als bei der sonst ueblichen Fenstergroessen-
+       Messung. */
+
+    let schutzTreffer = 0;
+
+    setInterval(function(){
+
+        const t0 = performance.now();
+
+        debugger;
+
+        /* Erst beim zweiten Treffer in Folge schliessen.
+           Ein einzelner Ausreisser kann auch ein kurzer
+           Aussetzer des Rechners sein – davon soll niemand
+           aus dem Spiel fliegen. */
+
+        if(performance.now() - t0 > 400){
+
+            schutzTreffer++;
+
+            if(schutzTreffer >= 2){
+
+                schutzSchliessen(
+                    "Die Entwicklerwerkzeuge des Browsers sind geoeffnet."
+                );
+
+            }
+
+        }else{
+
+            schutzTreffer = 0;
+
+        }
+
+    }, 2000);
+
+
+    /* --- 3. Klicks, die kein Mensch erzeugt hat ---------------
+       isTrusted ist false, sobald ein Skript den Klick
+       ausloest (Konsole, Erweiterung, eingeschleuster Code). */
+
+    ["pointerdown", "click", "keydown", "touchstart"]
+        .forEach(function(typ){
+
+            document.addEventListener(typ, function(e){
+
+                if(e.isTrusted === false){
+
+                    schutzSchliessen(
+                        "Ein Programm hat Klicks an deiner Stelle ausgeloest."
+                    );
+
+                }
+
+            }, true);
+
+        });
+
+
+    /* --- 4. Auto-Klicker am Takt erkennen ---------------------
+       Ein Mensch trifft nie sieben Klicks hintereinander auf
+       wenige Millisekunden genau im selben Abstand. Ein
+       Auto-Klicker tut genau das. */
+
+    document.addEventListener("pointerdown", function(e){
+
+        if(!e.isTrusted) return;
+
+        SCHUTZ.klicks.push(e.timeStamp);
+
+        if(SCHUTZ.klicks.length > 7) SCHUTZ.klicks.shift();
+        if(SCHUTZ.klicks.length < 7) return;
+
+        const abstaende = [];
+
+        for(let i = 1; i < SCHUTZ.klicks.length; i++)
+            abstaende.push(
+                SCHUTZ.klicks[i] - SCHUTZ.klicks[i - 1]
+            );
+
+        const min = Math.min.apply(null, abstaende);
+        const max = Math.max.apply(null, abstaende);
+
+        const schnitt =
+            abstaende.reduce(function(a, b){ return a + b; }, 0) /
+            abstaende.length;
+
+        if(schnitt < 900 && (max - min) < 6){
+
+            schutzSchliessen(
+                "Ein Auto-Klicker wurde erkannt: sieben Klicks " +
+                "im exakt gleichen Takt."
+            );
+
+        }
+
+    }, true);
+
+}
 
 </script>
 
