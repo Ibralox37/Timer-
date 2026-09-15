@@ -1,8 +1,8 @@
-/* Timer Challenge – Service Worker
+/* Timer Challenge - Service Worker
    Macht das Spiel offline spielbar und installierbar.
    Konten/Rangliste brauchen weiterhin Internet. */
 
-const CACHE = "timer-challenge-v6";
+const CACHE = "timer-challenge-v7";
 
 const DATEIEN = [
   "./",

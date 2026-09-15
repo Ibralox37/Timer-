@@ -924,10 +924,11 @@ input{
 #startScreen.open{ display:flex; }
 
 #startLogo{
-    width:clamp(220px,52vw,420px);
-    filter:
-        drop-shadow(0 0 22px rgba(0,136,255,.6))
-        drop-shadow(0 0 50px rgba(0,85,255,.3));
+    width:clamp(230px,54vw,440px);
+    /* Nur noch ein zarter Schein. Das Logo bringt sein eigenes
+       Leuchten mit; der frueher doppelte Schlagschatten legte
+       einen blauen Dunst drumherum und liess es unsauber wirken. */
+    filter:drop-shadow(0 2px 18px rgba(0,110,220,.35));
     animation:startLogoFloat 3.4s ease-in-out infinite;
 }
 
@@ -1381,7 +1382,7 @@ input{
     width:80%;
     max-width:300px;
     margin:0 auto 5px;
-    filter:drop-shadow(0 0 14px rgba(0,136,255,.5));
+    filter:drop-shadow(0 2px 12px rgba(0,110,220,.3));
 }
 
 .accountBox h2{
@@ -1577,9 +1578,7 @@ input{
 .vorix-logo-bild{
     display:block;
     width:clamp(230px,45vw,430px);
-    filter:
-        drop-shadow(0 0 20px rgba(0,136,255,.55))
-        drop-shadow(0 0 45px rgba(0,85,255,.3));
+    filter:drop-shadow(0 2px 16px rgba(0,110,220,.35));
 }
 
 .vorix-subtitle{
