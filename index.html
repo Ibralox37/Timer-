@@ -1224,6 +1224,23 @@ input{
 
 .dialogButtons .panelButton{ margin-top:0; }
 
+/* Auswahlliste (z. B. Bann-Grund): untereinander statt nebeneinander,
+   sonst quetschen sich lange Texte in schmale Spalten. */
+
+.dialogButtons.liste{
+    flex-direction:column;
+    gap:8px;
+    max-height:52vh;
+    overflow-y:auto;
+}
+
+.dialogButtons.liste .panelButton{
+    text-align:left;
+    font-size:15px;
+    line-height:1.35;
+    padding:13px 15px;
+}
+
 /* Admin-Knopf im Spiel (nur für Admins sichtbar) */
 
 #adminButton{
@@ -2388,6 +2405,167 @@ function showConfirm(titel, text, icon, jaText){
 }
 
 
+function showChoice(titel, text, icon, optionen){
+
+    /* Wie showConfirm, nur mit mehreren Antworten untereinander.
+       Liefert den Schluessel der gewaehlten Antwort oder null. */
+
+    return new Promise(function(fertig){
+
+        const overlay =
+            document.getElementById("dialogOverlay");
+
+        document.getElementById("dialogIcon").textContent =
+            icon || "❓";
+
+        document.getElementById("dialogTitle").textContent =
+            titel || "";
+
+        document.getElementById("dialogText").textContent =
+            text || "";
+
+        const knoepfe =
+            document.getElementById("dialogButtons");
+
+        knoepfe.classList.add("liste");
+
+        knoepfe.innerHTML =
+            optionen.map(function(o, i){
+                return '<button class="panelButton" data-wahl="' + i + '">' +
+                    (o.icon ? o.icon + "  " : "") +
+                    escapeHTML(o.text) + '</button>';
+            }).join("") +
+            '<button class="panelButton secondary" data-wahl="ab">' +
+            'Abbrechen</button>';
+
+        overlay.classList.add("open");
+
+        knoepfe.querySelectorAll("[data-wahl]").forEach(function(b){
+
+            b.onclick = function(){
+
+                overlay.classList.remove("open");
+                knoepfe.classList.remove("liste");
+
+                const w = b.dataset.wahl;
+
+                fertig(w === "ab" ? null : optionen[Number(w)]);
+
+            };
+
+        });
+
+    });
+
+}
+
+
+/* =====================================================
+   SPERRBILDSCHIRM
+
+   Wird einem gebannten Spieler statt des Spiels gezeigt.
+   Bewusst als ganze Seite und nicht als Meldung: Nach dem
+   Abmelden gibt es kein Spiel mehr, in das man zurueckkehren
+   koennte. Der Grund kommt vom Server und steht in
+   profiles.ban_reason.
+===================================================== */
+
+const SPERRGRUENDE = [
+    { icon:"🎯", text:"Cheaten – Auto-Klicker oder fremdes Programm" },
+    { icon:"🔧", text:"Versuch, das Spiel oder die Bestenliste zu manipulieren" },
+    { icon:"💬", text:"Unpassender oder beleidigender Spielername" },
+    { icon:"👥", text:"Mehrere Konten, um die Bestenliste zu füllen" },
+    { icon:"⚠️", text:"Unfaires Verhalten gegenüber anderen Spielern" },
+    { icon:"❓", text:"Verstoß gegen die Spielregeln" }
+];
+
+
+function zeigeSperrbildschirm(name, grund, seit){
+
+    let datum = "";
+
+    if(seit){
+
+        const d = new Date(seit);
+
+        if(!isNaN(d)){
+
+            datum =
+                String(d.getDate()).padStart(2, "0") + "." +
+                String(d.getMonth() + 1).padStart(2, "0") + "." +
+                d.getFullYear();
+
+        }
+
+    }
+
+    const grundText =
+        grund && String(grund).trim()
+            ? String(grund).trim()
+            : "Verstoß gegen die Spielregeln";
+
+    function sicher(t){
+        return String(t)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    document.documentElement.innerHTML =
+        '<body style="margin:0;min-height:100vh;display:flex;' +
+        'align-items:center;justify-content:center;' +
+        'background:radial-gradient(circle at 50% 35%,#16202f,#070b12 70%);' +
+        'color:#fff;text-align:center;font-family:Arial,sans-serif;' +
+        'padding:20px;box-sizing:border-box">' +
+
+        '<div style="max-width:470px;width:100%">' +
+
+        '<img src="vorix-logo-hell.png" alt="VORIX" ' +
+        'style="width:min(300px,68vw);height:auto;margin-bottom:18px;' +
+        'opacity:.85">' +
+
+        '<div style="font-size:54px;line-height:1">🚫</div>' +
+
+        '<h2 style="color:#ff6b6b;margin:10px 0 4px;font-size:26px">' +
+        'Du wurdest gesperrt</h2>' +
+
+        '<p style="margin:0 0 20px;opacity:.75;font-size:15px">' +
+        'Ein Admin hat dein Konto' +
+        (name ? ' <b>' + sicher(name) + '</b>' : '') +
+        ' gesperrt.</p>' +
+
+        '<div style="background:rgba(255,60,80,.09);' +
+        'border:1px solid rgba(255,80,90,.35);border-radius:14px;' +
+        'padding:16px 18px;text-align:left">' +
+
+        '<div style="font-size:12px;letter-spacing:1.5px;' +
+        'text-transform:uppercase;opacity:.55;margin-bottom:6px">' +
+        'Grund</div>' +
+
+        '<div style="font-size:17px;font-weight:bold;line-height:1.4">' +
+        sicher(grundText) + '</div>' +
+
+        (datum
+            ? '<div style="margin-top:12px;font-size:13px;opacity:.6">' +
+              'Gesperrt am ' + datum + '</div>'
+            : '') +
+
+        '</div>' +
+
+        '<p style="margin:22px 0 0;font-size:14px;opacity:.7;' +
+        'line-height:1.6">' +
+        'Mit diesem Konto kannst du nicht mehr spielen. ' +
+        'Deine Punkte stehen nicht mehr in der Bestenliste.<br>' +
+        'Hältst du das für einen Fehler, melde dich bei VORIX.</p>' +
+
+        '<p style="margin-top:26px;opacity:.4;font-size:12px">' +
+        '&copy; 2026 Ibralox37 / VORIX &ndash; WE CREATE GAMES</p>' +
+
+        '</div></body>';
+
+}
+
+
 /* =====================================================
    KOPIERSCHUTZ
    Das Spiel laeuft nur auf der echten Vorix-Adresse.
@@ -2886,7 +3064,8 @@ async function loadProfile(user){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("username,image,perfects,ranks,is_admin,banned")
+            .select("username,image,perfects,ranks,is_admin," +
+                    "banned,ban_reason,banned_at")
             .eq("id", user.id)
             .maybeSingle();
 
@@ -2903,14 +3082,11 @@ async function loadProfile(user){
 
             await supabaseClient.auth.signOut();
 
-            await showMessage(
-                "Konto gesperrt",
-                "Dieses Konto wurde von einem Admin gesperrt. " +
-                "Spielen ist damit nicht mehr moeglich.",
-                "🚫"
+            zeigeSperrbildschirm(
+                data.username,
+                data.ban_reason,
+                data.banned_at
             );
-
-            location.reload();
 
             return;
 
@@ -8216,7 +8392,8 @@ async function openAdminPlayers(){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("id,username,image,perfects,banned,is_admin,created_at")
+            .select("id,username,image,perfects,banned,ban_reason," +
+                    "banned_at,is_admin,created_at")
             .order("created_at", { ascending: true });
 
     if(error){
@@ -8259,7 +8436,12 @@ async function openAdminPlayers(){
                 '<div class="name">' + escapeHTML(p.username) +
                 '<div class="smallText">LVL ' + lvl +
                 ' · ' + (p.perfects || 0) + ' Treffer' +
-                (p.banned ? ' · 🚫 gebannt' : '') + '</div></div>' +
+                (p.banned ? ' · 🚫 gebannt' : '') +
+                (p.banned && p.ban_reason
+                    ? '<br><span style="color:#ff8a8a">' +
+                      escapeHTML(p.ban_reason) + '</span>'
+                    : '') +
+                '</div></div>' +
                 knopf + '</div>';
 
         }).join("");
@@ -8278,8 +8460,10 @@ async function openAdminPlayers(){
         '</div>' +
         '<h3 style="margin:14px 0 6px">👥 Alle Spieler</h3>' +
         zeilen +
-        '<p class="smallText">Gebannte Spieler verschwinden aus allen Bestenlisten, ' +
-        'können aber weiterspielen.</p>' +
+        '<p class="smallText">Wer gebannt ist, fliegt aus allen Bestenlisten, ' +
+        'kann sich nicht mehr anmelden und bekommt beim nächsten Versuch ' +
+        'den Grund angezeigt. Der Server nimmt von gesperrten Konten ' +
+        'auch keine Punkte mehr an.</p>' +
         '<button class="panelButton secondary" id="closeAdmin">← Zurück</button>';
 
     document.getElementById("closeAdmin").onclick =
@@ -8289,7 +8473,30 @@ async function openAdminPlayers(){
 
     panelContent.querySelectorAll("[data-ban]").forEach(function(btn){
 
-        btn.onclick = function(){ setBan(btn.dataset.ban, true, btn); };
+        btn.onclick = async function(){
+
+            /* Erst den Grund waehlen. Der landet beim Gebannten
+               auf dem Sperrbildschirm - deshalb keine Sperre
+               ohne Begruendung. */
+
+            const name =
+                btn.closest(".friendRow")
+                   .querySelector(".name").childNodes[0].textContent;
+
+            const wahl =
+                await showChoice(
+                    "Warum bannen?",
+                    "Warum wird " + name + " gesperrt? " +
+                    "Der Grund wird dem Spieler angezeigt.",
+                    "🚫",
+                    SPERRGRUENDE
+                );
+
+            if(!wahl)return;
+
+            setBan(btn.dataset.ban, true, btn, wahl.text);
+
+        };
 
     });
 
@@ -8380,7 +8587,7 @@ async function resetMyData(){
 }
 
 
-async function setBan(id, wert, btn){
+async function setBan(id, wert, btn, grund){
 
     btn.disabled = true;
     btn.textContent = "...";
@@ -8389,7 +8596,8 @@ async function setBan(id, wert, btn){
         await supabaseClient
             .rpc("admin_set_ban", {
                 target: id,
-                wert: wert
+                wert: wert,
+                grund: wert ? (grund || null) : null
             });
 
     if(error){
@@ -8406,8 +8614,8 @@ async function setBan(id, wert, btn){
     showToast(
         wert ? "🚫 Gebannt" : "✅ Entbannt",
         wert
-        ? "Der Spieler ist aus allen Bestenlisten raus."
-        : "Der Spieler erscheint wieder in den Listen."
+        ? "Beim nächsten Anmelden sieht er den Sperrbildschirm mit dem Grund."
+        : "Der Spieler kann wieder spielen und erscheint in den Listen."
     );
 
     openAdminPlayers();
@@ -9702,6 +9910,49 @@ showModeCats();
 initAccount();
 
 updateRankingButton();
+
+
+/* =====================================================
+   SPERRE AUCH MITTEN IM SPIEL BEMERKEN
+
+   Die Pruefung beim Anmelden allein reicht nicht: Wer schon
+   eingeloggt ist, wuerde bis zum naechsten Start weiterspielen.
+   Deshalb alle 90 Sekunden kurz nachfragen. Das ist eine
+   winzige Abfrage und faellt nicht ins Gewicht.
+===================================================== */
+
+setInterval(async function(){
+
+    if(!isOnline() || isGuest || !currentUserId) return;
+
+    try{
+
+        const { data } =
+            await supabaseClient
+                .from("profiles")
+                .select("username,banned,ban_reason,banned_at")
+                .eq("id", currentUserId)
+                .maybeSingle();
+
+        if(data && data.banned === true){
+
+            await supabaseClient.auth.signOut();
+
+            zeigeSperrbildschirm(
+                data.username,
+                data.ban_reason,
+                data.banned_at
+            );
+
+        }
+
+    }catch(e){
+
+        /* Kein Netz? Dann beim naechsten Mal wieder. */
+
+    }
+
+}, 90000);
 
 
 /* =====================================================
