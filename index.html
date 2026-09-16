@@ -2665,6 +2665,13 @@ if(!hostErlaubt()){
 let currentUser = null;      /* Anzeigename */
 let currentUserId = null;    /* Server-ID des Kontos */
 let isAdmin = false;         /* vom Server geladen, nie hier gesetzt */
+
+/* Konto mit Vollzugriff: alle Designs offen, hoechster Rang.
+   Wird vom Server geladen (profiles.unlock_all) und nie hier
+   gesetzt - sonst koennte man es im Browser einfach anknipsen.
+   Solche Konten stehen NEBEN den Bestenlisten, nicht darin. */
+
+let alleFrei = false;
 let currentProfile = null;   /* { image, perfects, ranks } */
 let isGuest = false;
 let accountLoginMode = false;
@@ -2998,6 +3005,7 @@ function startGuestMode(){
 
     isGuest = true;
     isAdmin = false;
+    alleFrei = false;
 
     currentUser = null;
     currentUserId = null;
@@ -3108,7 +3116,7 @@ async function loadProfile(user){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("username,image,perfects,ranks,is_admin," +
+            .select("username,image,perfects,ranks,is_admin,unlock_all," +
                     "banned,ban_reason,banned_at")
             .eq("id", user.id)
             .maybeSingle();
@@ -3137,6 +3145,7 @@ async function loadProfile(user){
         }
 
         isAdmin = data.is_admin === true;
+        alleFrei = data.unlock_all === true;
 
         finishLogin(
             data.username,
@@ -3304,6 +3313,7 @@ function backToAccountScreen(){
     currentProfile = null;
     isGuest = false;
     isAdmin = false;
+    alleFrei = false;
 
     localStorage.removeItem(
         "kronixGuestActive"
@@ -4882,7 +4892,7 @@ async function showGlobalRanking(){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("username,image,ranks,is_admin,banned")
+            .select("username,image,ranks,is_admin,unlock_all,banned")
             .limit(500);
 
     if(error){
@@ -4902,9 +4912,16 @@ async function showGlobalRanking(){
     const players =
         alle
 
+        /* Ausser Konkurrenz: Admins und Konten mit Vollzugriff.
+           Ein Konto, bei dem alles freigeschaltet ist, wuerde
+           die Liste sonst anfuehren und damit genau das kaputt
+           machen, was das Spiel spannend macht. */
+
         .filter(
             row =>
-                !row.is_admin && !row.banned
+                !row.is_admin &&
+                !row.unlock_all &&
+                !row.banned
         )
 
         .map(
@@ -4944,12 +4961,13 @@ async function showGlobalRanking(){
 
         .slice(0, 50);
 
-    /* Admins stehen daneben, nicht in der Wertung */
+    /* Admins und Vollzugriff-Konten stehen daneben,
+       nicht in der Wertung */
 
     const admins =
         alle.filter(
             row =>
-                row.is_admin &&
+                (row.is_admin || row.unlock_all) &&
                 !row.banned &&
                 row.ranks &&
                 Number(row.ranks[currentMode] || 0) > 0
@@ -8021,6 +8039,13 @@ const THEME_NAMES = {
 
 function themeUnlocked(name){
 
+    /* Konto mit Vollzugriff: alles offen.
+       Wichtig, weil die Punkte fuer Designs im localStorage
+       liegen, also am Geraet kleben. Ohne diesen Schalter waere
+       auf einem frischen Handy wieder alles zu. */
+
+    if(alleFrei) return true;
+
     const noetig = THEME_UNLOCKS[name] || 0;
 
     return getPoints() >= noetig;
@@ -8045,7 +8070,7 @@ function refreshThemeLocks(){
         const alt = btn.querySelector(".lockInfo");
         if(alt) alt.remove();
 
-        if(punkte >= noetig){
+        if(alleFrei || punkte >= noetig){
 
             btn.classList.remove("locked");
 
@@ -8240,7 +8265,7 @@ async function showLevelRanking(){
     const { data, error } =
         await supabaseClient
             .from("profiles")
-            .select("username,image,perfects,is_admin,banned")
+            .select("username,image,perfects,is_admin,unlock_all,banned")
             .order("perfects", { ascending: false })
             .limit(60);
 
@@ -8259,7 +8284,7 @@ async function showLevelRanking(){
 
     const alle = data || [];
 
-    /* Admins laufen ausser Konkurrenz,
+    /* Admins und Vollzugriff-Konten laufen ausser Konkurrenz,
        gebannte Spieler erscheinen gar nicht */
 
     const spieler =
@@ -8267,6 +8292,7 @@ async function showLevelRanking(){
 
             return Number(p.perfects) > 0 &&
                    !p.is_admin &&
+                   !p.unlock_all &&
                    !p.banned;
 
         });
@@ -8274,7 +8300,7 @@ async function showLevelRanking(){
     const admins =
         alle.filter(function(p){
 
-            return p.is_admin && !p.banned;
+            return (p.is_admin || p.unlock_all) && !p.banned;
 
         });
 
@@ -8527,7 +8553,7 @@ async function openAdminPlayers(){
         await supabaseClient
             .from("profiles")
             .select("id,username,image,perfects,banned,ban_reason," +
-                    "banned_at,is_admin,created_at")
+                    "banned_at,is_admin,unlock_all,created_at")
             .order("created_at", { ascending: true });
 
     if(error){
@@ -8556,12 +8582,23 @@ async function openAdminPlayers(){
 
             const lvl = levelInfo(p.perfects).level;
 
+            /* Vollzugriff laesst sich fuer jedes Konto ein- und
+               ausschalten, auch fuer Admins. */
+
+            const freiKnopf =
+                p.unlock_all
+                ? '<button class="miniButton" data-frei-aus="' + p.id +
+                  '" title="Vollzugriff wieder abschalten">✨ an</button>'
+                : '<button class="miniButton" data-frei-an="' + p.id +
+                  '" title="Alle Designs und den höchsten Rang freischalten">✨ frei</button>';
+
             const knopf =
-                p.is_admin
-                ? '<span class="adminTag">ADMIN</span>'
-                : p.banned
-                ? '<button class="miniButton green" data-unban="' + p.id + '">Entbannen</button>'
-                : '<button class="miniButton red" data-ban="' + p.id + '">Bannen</button>';
+                (p.is_admin
+                    ? '<span class="adminTag">ADMIN</span>'
+                    : p.banned
+                    ? '<button class="miniButton green" data-unban="' + p.id + '">Entbannen</button>'
+                    : '<button class="miniButton red" data-ban="' + p.id + '">Bannen</button>')
+                + freiKnopf;
 
             return '<div class="friendRow' +
                 (p.banned ? ' bannedRow' : '') + '">' +
@@ -8570,6 +8607,7 @@ async function openAdminPlayers(){
                 '<div class="name">' + escapeHTML(p.username) +
                 '<div class="smallText">LVL ' + lvl +
                 ' · ' + (p.perfects || 0) + ' Treffer' +
+                (p.unlock_all ? ' · ✨ Vollzugriff' : '') +
                 (p.banned ? ' · 🚫 gebannt' : '') +
                 (p.banned && p.ban_reason
                     ? '<br><span style="color:#ff8a8a">' +
@@ -8597,7 +8635,11 @@ async function openAdminPlayers(){
         '<p class="smallText">Wer gebannt ist, fliegt aus allen Bestenlisten, ' +
         'kann sich nicht mehr anmelden und bekommt beim nächsten Versuch ' +
         'den Grund angezeigt. Der Server nimmt von gesperrten Konten ' +
-        'auch keine Punkte mehr an.</p>' +
+        'auch keine Punkte mehr an.<br><br>' +
+        '<b>✨ frei</b> schaltet für ein Konto alle Designs frei. ' +
+        'Solche Konten stehen dann <b>neben</b> den Bestenlisten wie Admins – ' +
+        'sonst würden sie die Listen anführen und das Spiel für alle anderen ' +
+        'langweilig machen.</p>' +
         '<button class="panelButton secondary" id="closeAdmin">← Zurück</button>';
 
     document.getElementById("closeAdmin").onclick =
@@ -8637,6 +8679,24 @@ async function openAdminPlayers(){
     panelContent.querySelectorAll("[data-unban]").forEach(function(btn){
 
         btn.onclick = function(){ setBan(btn.dataset.unban, false, btn); };
+
+    });
+
+    /* Vollzugriff an / aus */
+
+    panelContent.querySelectorAll("[data-frei-an]").forEach(function(btn){
+
+        btn.onclick = function(){
+            setUnlockAll(btn.dataset.freiAn, true, btn);
+        };
+
+    });
+
+    panelContent.querySelectorAll("[data-frei-aus]").forEach(function(btn){
+
+        btn.onclick = function(){
+            setUnlockAll(btn.dataset.freiAus, false, btn);
+        };
 
     });
 
@@ -8717,6 +8777,50 @@ async function resetMyData(){
         "🔄 Zurückgesetzt",
         "Alles auf Anfang – viel Spaß beim Neuaufbau!"
     );
+
+}
+
+
+async function setUnlockAll(id, wert, btn){
+
+    btn.disabled = true;
+    btn.textContent = "...";
+
+    const { error } =
+        await supabaseClient
+            .rpc("admin_set_unlock", {
+                target: id,
+                wert: wert
+            });
+
+    if(error){
+
+        showToast("⛔ Fehler", error.message);
+
+        btn.disabled = false;
+        btn.textContent = wert ? "✨ frei" : "✨ an";
+
+        return;
+
+    }
+
+    /* Betrifft es das eigene Konto, sofort uebernehmen */
+
+    if(id === currentUserId){
+
+        alleFrei = wert;
+        refreshThemeLocks();
+
+    }
+
+    showToast(
+        wert ? "✨ Vollzugriff an" : "✨ Vollzugriff aus",
+        wert
+        ? "Alle Designs offen. Das Konto steht ab jetzt neben den Bestenlisten, nicht darin."
+        : "Designs richten sich wieder nach den Punkten."
+    );
+
+    openAdminPlayers();
 
 }
 
