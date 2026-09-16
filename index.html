@@ -10159,11 +10159,36 @@ if(SCHUTZ_AN){
 
     /* --- 1. Rechtsklick und Entwickler-Tastenkuerzel sperren --- */
 
+    /* Steht der Mauszeiger oder die Eingabe gerade in einem
+       Feld? Dort haelt sich der Schutz komplett heraus, damit
+       Passwortmanager und das Tippen selbst nicht gestoert
+       werden. */
+
+    function inEingabefeld(ziel){
+
+        if(!ziel || !ziel.closest) return false;
+
+        return !!ziel.closest(
+            "input, textarea, select, [contenteditable='true']"
+        );
+
+    }
+
     document.addEventListener("contextmenu", function(e){
+
+        /* In Eingabefeldern bleibt das Rechtsklick-Menue
+           erlaubt - dort sitzt "Einfuegen" und der
+           Passwortmanager. */
+
+        if(inEingabefeld(e.target)) return;
+
         e.preventDefault();
+
     });
 
     document.addEventListener("keydown", function(e){
+
+        if(inEingabefeld(e.target)) return;
 
         const k = e.key ? e.key.toUpperCase() : "";
 
@@ -10230,21 +10255,44 @@ if(SCHUTZ_AN){
 
 
     /* --- 3. Klicks, die kein Mensch erzeugt hat ---------------
-       isTrusted ist false, sobald ein Skript den Klick
-       ausloest (Konsole, Erweiterung, eingeschleuster Code). */
+       isTrusted ist false, sobald ein Skript das Ereignis
+       ausloest statt ein echter Finger oder eine echte Maus.
 
-    ["pointerdown", "click", "keydown", "touchstart"]
+       ACHTUNG, hier lag ein Fehler (gemeldet von Ibrahim am
+       16.09.2026): Die Pruefung lief urspruenglich auf der
+       ganzen Seite und auch auf Tastendruecke. Passwort-
+       manager - Google, Chrome, Safari, Samsung Pass - fuellen
+       das Anmeldefeld aber genau so aus: Sie setzen den Text
+       und loesen dabei kuenstliche Ereignisse aus. Wer sein
+       Passwort gespeichert hatte, flog beim Anmelden raus.
+
+       Deshalb gilt die Pruefung jetzt nur noch, wenn ALLE drei
+       Punkte zutreffen:
+         1. das Ereignis passiert auf der Spielflaeche
+         2. eine Runde laeuft gerade
+         3. es ist ein Zeigerereignis, kein Tastendruck
+       Ein Anmeldefeld ist nie die Spielflaeche, und beim
+       Anmelden laeuft keine Runde. Damit ist der Passwort-
+       manager aus dem Weg, ein Klickskript im Spiel aber
+       weiterhin erkannt. */
+
+    ["pointerdown", "click", "touchstart"]
         .forEach(function(typ){
 
             document.addEventListener(typ, function(e){
 
-                if(e.isTrusted === false){
+                if(e.isTrusted !== false) return;
 
-                    schutzSchliessen(
-                        "Ein Programm hat Klicks an deiner Stelle ausgeloest."
-                    );
+                if(!gameArea || !gameArea.contains(e.target)) return;
 
-                }
+                let laeuft = false;
+                try{ laeuft = running === true; }catch(err){}
+
+                if(!laeuft) return;
+
+                schutzSchliessen(
+                    "Ein Programm hat im Spiel geklickt, nicht du."
+                );
 
             }, true);
 
@@ -10259,6 +10307,17 @@ if(SCHUTZ_AN){
     document.addEventListener("pointerdown", function(e){
 
         if(!e.isTrusted) return;
+
+        /* Nur Klicks auf der Spielflaeche zaehlen. Wer im Menue
+           oder in einem Formular herumtippt, spielt nicht. */
+
+        if(!gameArea || !gameArea.contains(e.target)){
+
+            SCHUTZ.klicks = [];
+
+            return;
+
+        }
 
         SCHUTZ.klicks.push(e.timeStamp);
 
