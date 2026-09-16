@@ -132,6 +132,17 @@ button{
     cursor:pointer;
 }
 
+/* Huelle um den Timer. Sie gibt der Krone einen Bezugspunkt,
+   ohne den Timer zu verschieben - sonst saesse der Ziel-Ring
+   nicht mehr mittig um die Zahl. */
+
+#timerWrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
 /* Partikel-Hintergrund */
 
 #particles{
@@ -304,6 +315,33 @@ button{
     20%,80%{ transform:translate(4px,-2px); }
     30%,50%,70%{ transform:translate(-7px,2px); }
     40%,60%{ transform:translate(7px,-1px); }
+}
+
+/* Krone ueber dem Timer – gibt es nur im Design "Royal".
+   Sie sitzt im Fluss ueber dem Timer, damit sie bei jeder
+   Bildschirmgroesse mittig darueber bleibt, und faengt keine
+   Klicks ab (sonst koennte man den Timer dort nicht stoppen). */
+
+#timerKrone{
+    display:none;
+    position:absolute;
+    bottom:100%;
+    left:0;
+    right:0;
+    margin-bottom:2px;
+    font-size:clamp(34px,9vw,58px);
+    line-height:1;
+    text-align:center;
+    pointer-events:none;
+    filter:drop-shadow(0 0 14px rgba(255,79,216,.75));
+    animation:kroneSchweben 2.8s ease-in-out infinite;
+}
+
+body.designRoyal #timerKrone{ display:block; }
+
+@keyframes kroneSchweben{
+    0%,100%{ transform:translateY(0) rotate(-4deg); }
+    50%{ transform:translateY(-7px) rotate(4deg); }
 }
 
 #timer{
@@ -1976,7 +2014,10 @@ input{
 </div>
 
 <div id="gameArea">
-    <div id="timer">00.00</div>
+    <div id="timerWrap">
+        <div id="timerKrone">👑</div>
+        <div id="timer">00.00</div>
+    </div>
 </div>
 
 <div id="info">
@@ -2190,6 +2231,10 @@ input{
 
     <button class="designChoice" data-design="matrix">
         🟢 Matrix
+    </button>
+
+    <button class="designChoice" data-design="royal">
+        👑 Royal
     </button>
 
     <!-- Neon und Sound stehen jetzt in den Einstellungen;
@@ -7116,6 +7161,19 @@ const designs = {
         button:"#0f5a2f",
         info:"#8affc0"
 
+    },
+
+    /* Lila-Pink mit Krone ueber dem Timer.
+       Das einzige Design mit einem eigenen Extra - die Krone
+       wird ueber die Klasse designRoyal am body gesteuert. */
+
+    royal:{
+
+        background:"#1b0426",
+        timer:"#ff4fd8",
+        button:"#8a1fb0",
+        info:"#ffb0ef"
+
     }
 
 };
@@ -7164,6 +7222,13 @@ function applyDesign(){
 
     document.body.style.background =
         d.background;
+
+    /* Krone ueber dem Timer nur im Design "Royal" */
+
+    document.body.classList.toggle(
+        "designRoyal",
+        currentDesign === "royal"
+    );
 
     /* Tiefe: sanfter Lichtschein oben,
        dunkle Ecken unten */
@@ -8024,6 +8089,7 @@ const THEME_UNLOCKS = {
     purple: 250,
     crimson: 500,
     matrix: 500,
+    royal: 750,
     gold: 1000
 };
 
@@ -8034,6 +8100,7 @@ const THEME_NAMES = {
     purple: "🔮 Purpur",
     crimson: "🔥 Crimson",
     matrix: "🟢 Matrix",
+    royal: "👑 Royal",
     gold: "👑 Gold"
 };
 
