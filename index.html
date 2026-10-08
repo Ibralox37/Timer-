@@ -28,6 +28,9 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#07101c">
+<!-- Optik/Sicherheit 08.10.2026: Fremde Seiten sehen beim Klick
+     auf einen Link nur die Hauptadresse, nie den genauen Pfad. -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
 
 <!-- Spiele-Schriftarten -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,6 +116,12 @@ html,body{
     background:#080b12;
     color:white;
     font-family:"Rajdhani","Segoe UI",Arial,sans-serif;
+    /* Optik 08.10.2026: glattere Schrift, und das iPhone
+       vergroessert beim Drehen keine Texte mehr von selbst */
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
 }
 
 body{
@@ -175,6 +184,17 @@ button{
     filter:drop-shadow(0 0 10px rgba(0,170,255,.55));
 }
 
+/* Optik 08.10.2026: Schein in der Farbe des Designs.
+   Nur in Browsern, die color-mix kennen - alle anderen
+   behalten den blauen Schein von oben. */
+
+@supports (color:color-mix(in srgb,red 50%,transparent)){
+
+    #ringWrap svg{
+        filter:drop-shadow(0 0 10px color-mix(in srgb,var(--c-accent) 55%,transparent));
+    }
+}
+
 .ringTrack{
     fill:none;
     stroke:rgba(255,255,255,.09);
@@ -203,6 +223,7 @@ button{
     position:fixed;
     left:50%;
     bottom:86px;
+    bottom:calc(86px + env(safe-area-inset-bottom, 0px));
     transform:translateX(-50%) translateY(18px);
     z-index:46;
     width:min(92%,420px);
@@ -293,7 +314,7 @@ button{
     display:flex;
     justify-content:space-between;
     font-size:10px;
-    opacity:.45;
+    opacity:.6;
     margin-top:2px;
 }
 
@@ -465,6 +486,7 @@ body.designRoyal #timerKrone{ display:block; }
 #designMenu > .menuBox{
     width:min(92%,430px);
     max-height:88vh;
+    max-height:88dvh;
     overflow-y:auto;
 }
 
@@ -505,7 +527,7 @@ body.designRoyal #timerKrone{ display:block; }
     margin-top:3px;
     font-size:12px;
     font-weight:500;
-    opacity:.6;
+    opacity:.72;
 }
 
 /* --- Kategorie-Kacheln (Ebene 1 im Modus-Menü) --- */
@@ -546,7 +568,7 @@ body.designRoyal #timerKrone{ display:block; }
 
 .catHint{
     font-size:11px;
-    opacity:.6;
+    opacity:.72;
 }
 
 .menuTitle{
@@ -703,12 +725,15 @@ body.designRoyal #timerKrone{ display:block; }
     transform:translate(-50%,-50%);
     width:min(91%,440px);
     max-height:86vh;
+    max-height:86dvh;   /* Optik 08.10.2026: passt auch bei eingeblendeter Browserleiste */
     overflow-y:auto;
     padding:25px;
     border:1px solid rgba(255,255,255,.1);
     border-radius:22px;
     background:#182238;
-    box-shadow:0 25px 80px rgba(0,0,0,.65);
+    /* Optik 08.10.2026: gleicher Verlauf wie Menue und Meldungen */
+    background:linear-gradient(160deg,#1b2942,#131d30);
+    box-shadow:0 25px 80px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.06);
     display:none;
     z-index:4600;   /* über Startbildschirm und Hauptmenü */
 }
@@ -759,6 +784,17 @@ input{
 
 .panelButton.danger{
     background:#dc2626;
+}
+
+/* Optik 08.10.2026: gesperrter Knopf (z. B. waehrend der
+   Anmeldung laeuft) sieht auch gesperrt aus */
+
+button.panelButton:disabled,
+button.miniButton:disabled{
+    opacity:.55;
+    cursor:default;
+    filter:none;
+    transform:none;
 }
 
 #timer.perfect{
@@ -874,7 +910,11 @@ input{
     color:white;
     background:var(--c-btn);
     cursor:pointer;
+    transition:filter .15s,transform .1s;   /* Optik 08.10.2026 */
 }
+
+.miniButton:hover{ filter:brightness(1.15); }
+.miniButton:active{ transform:scale(.96); }
 
 .miniButton.green{ background:#16a34a; }
 .miniButton.red{ background:#dc2626; }
@@ -1042,6 +1082,7 @@ input{
 #startFooter{
     position:absolute;
     bottom:18px;
+    bottom:calc(18px + env(safe-area-inset-bottom, 0px));
     font-size:12px;
     opacity:.45;
     text-align:center;
@@ -1109,13 +1150,25 @@ input{
 .menuBox{
     width:min(92%,430px);
     max-height:88vh;
+    max-height:88dvh;
     overflow-y:auto;
     padding:24px 22px;
     border:1px solid rgba(255,255,255,.12);
     border-radius:24px;
     background:linear-gradient(160deg,#182741,#0f1726);
-    box-shadow:0 30px 90px rgba(0,0,0,.7);
+    box-shadow:0 30px 90px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
     animation:dialogIn .3s cubic-bezier(.2,1.3,.4,1);
+}
+
+/* Optik 08.10.2026: schmale, dunkle Scrollleiste statt des
+   grauen Windows-Balkens. Browser, die das nicht kennen,
+   ignorieren es einfach. */
+
+.menuBox,
+#panel,
+.dialogButtons.liste{
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,.22) transparent;
 }
 
 .menuHead{
@@ -1128,7 +1181,7 @@ input{
 
 .menuSub{
     font-size:13px;
-    opacity:.6;
+    opacity:.7;
     text-align:center;
     margin-bottom:16px;
 }
@@ -1161,7 +1214,7 @@ input{
 
 .menuItem .mIcon{ font-size:27px; line-height:1; }
 .menuItem .mName{ font-size:14px; font-weight:700; }
-.menuItem .mHint{ font-size:11px; opacity:.55; }
+.menuItem .mHint{ font-size:11px; opacity:.7; }
 
 .menuItem.wide{ grid-column:1 / -1; min-height:60px; flex-direction:row; gap:10px; }
 
@@ -1239,7 +1292,7 @@ input{
     border:1px solid rgba(255,255,255,.13);
     border-radius:22px;
     background:linear-gradient(160deg,#1b2942,#111a2b);
-    box-shadow:0 28px 80px rgba(0,0,0,.7),0 0 40px rgba(0,136,255,.15);
+    box-shadow:0 28px 80px rgba(0,0,0,.7),0 0 40px rgba(0,136,255,.15),inset 0 1px 0 rgba(255,255,255,.06);
     text-align:center;
     animation:dialogIn .28s cubic-bezier(.2,1.3,.4,1);
 }
@@ -1284,6 +1337,7 @@ input{
     flex-direction:column;
     gap:8px;
     max-height:52vh;
+    max-height:52dvh;
     overflow-y:auto;
 }
 
@@ -1430,6 +1484,10 @@ input{
     inset:0;
     z-index:5000;
     background:#080b12;
+    /* Optik 08.10.2026: gleicher Lichtschein wie der Startbildschirm */
+    background:
+        radial-gradient(900px 620px at 50% 28%,rgba(0,136,255,.14),transparent 62%),
+        #080b12;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -1438,10 +1496,11 @@ input{
 .accountBox{
     width:min(90%,420px);
     background:#182238;
+    background:linear-gradient(160deg,#1b2942,#131d30);   /* Optik 08.10.2026 */
     border:1px solid rgba(255,255,255,.1);
     border-radius:25px;
     padding:30px;
-    box-shadow:0 25px 80px rgba(0,0,0,.7);
+    box-shadow:0 25px 80px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
     text-align:center;
 }
 
@@ -1789,6 +1848,7 @@ input{
 
     #radar{
         bottom:24px;
+        bottom:calc(24px + env(safe-area-inset-bottom, 0px));
     }
 
     #panel{
@@ -1823,6 +1883,31 @@ input{
 
     #modeMenu > .menuBox,
     #designMenu > .menuBox{ width:min(96%,340px); }
+}
+
+/* Optik 08.10.2026: Wer mit der Tab-Taste durch die Knoepfe
+   springt, sieht einen Ring in der Design-Farbe. Mit Maus
+   oder Finger erscheint er nicht (:focus-visible). */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible{
+    outline:2px solid var(--c-accent);
+    outline-offset:2px;
+}
+
+/* Optik 08.10.2026: Hat jemand im Handy oder am PC
+   "Bewegung reduzieren" eingeschaltet, wackelt der
+   Bildschirm nicht und Logo und Timer pulsieren nicht.
+   PERFECT, Punkte und Menues bleiben wie sie sind. */
+
+@media (prefers-reduced-motion:reduce){
+
+    .shaking,
+    #timer.running,
+    #startLogo{
+        animation:none;
+    }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
